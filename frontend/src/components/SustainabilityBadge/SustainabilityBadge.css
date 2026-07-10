@@ -1,0 +1,84 @@
+.ares-sustainability-badge {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px 6px 6px;
+  border-radius: 14px;
+  background: var(--ares-panel);
+  border: 1px solid var(--ares-panel-border);
+  backdrop-filter: blur(10px);
+  cursor: default;
+}
+
+.ares-sustainability-ring {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+}
+
+.ares-sustainability-ring-track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 3;
+}
+
+.ares-sustainability-ring-fill {
+  fill: none;
+  stroke: var(--ares-status-stable);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.ares-sustainability-leaf {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--ares-status-stable);
+}
+
+.ares-sustainability-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ares-sustainability-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ares-text-dim);
+  white-space: nowrap;
+}
+
+.ares-sustainability-score {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ares-text-h);
+}
+
+.ares-sustainability-score svg {
+  color: var(--ares-status-stable);
+}
+
+.ares-sustainability-tooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 200px;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ares-text);
+  background: var(--ares-panel);
+  border: 1px solid var(--ares-panel-border);
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+  z-index: 20;
+  backdrop-filter: blur(10px);
+}

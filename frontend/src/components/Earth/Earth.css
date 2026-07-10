@@ -1,0 +1,83 @@
+.ares-earth {
+  position: absolute;
+  top: 8%;
+  right: 12%;
+  width: 9vw;
+  height: 9vw;
+  max-width: 130px;
+  max-height: 130px;
+  min-width: 70px;
+  min-height: 70px;
+}
+
+.ares-earth-glow {
+  position: absolute;
+  inset: -30%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(110, 170, 255, 0.35) 0%,
+    rgba(110, 170, 255, 0.08) 55%,
+    transparent 75%
+  );
+  filter: blur(2px);
+}
+
+.ares-earth-body {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  background: radial-gradient(
+    circle at 35% 30%,
+    #6fb7ff 0%,
+    #3f7fe0 35%,
+    #2a5cb8 60%,
+    #163a7a 100%
+  );
+  box-shadow:
+    0 0 24px rgba(111, 183, 255, 0.45),
+    inset -14px -10px 26px rgba(0, 0, 0, 0.55);
+}
+
+.ares-earth-continent {
+  position: absolute;
+  background: #4a9a5c;
+  opacity: 0.85;
+  filter: blur(0.3px);
+}
+
+.ares-earth-continent--a {
+  width: 46%;
+  height: 30%;
+  top: 18%;
+  left: 12%;
+  border-radius: 60% 40% 55% 45% / 50% 60% 40% 50%;
+}
+
+.ares-earth-continent--b {
+  width: 30%;
+  height: 24%;
+  bottom: 16%;
+  left: 40%;
+  border-radius: 45% 55% 50% 50% / 55% 45% 55% 45%;
+}
+
+.ares-earth-continent--c {
+  width: 22%;
+  height: 18%;
+  top: 55%;
+  left: 8%;
+  border-radius: 50%;
+}
+
+.ares-earth-shade {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 70% 75%,
+    rgba(0, 0, 0, 0.55) 0%,
+    transparent 55%
+  );
+}

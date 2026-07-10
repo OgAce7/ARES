@@ -1,0 +1,128 @@
+.ares-info-panel {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 280px;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--ares-panel);
+  border: 1px solid var(--ares-panel-border);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
+  z-index: 30;
+  pointer-events: auto;
+}
+
+.ares-info-panel-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.ares-info-panel-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(111, 215, 255, 0.12);
+  color: var(--ares-accent);
+  flex-shrink: 0;
+}
+
+.ares-info-panel-heading {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ares-info-panel-heading h3 {
+  font-size: 15px;
+}
+
+.ares-info-panel-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  color: var(--ares-status-color, var(--ares-status-stable));
+  width: fit-content;
+}
+
+.ares-info-panel-status i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ares-status-color, var(--ares-status-stable));
+  box-shadow: 0 0 5px var(--ares-status-color, var(--ares-status-stable));
+}
+
+.ares-info-panel-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 1px solid var(--ares-panel-border);
+  background: transparent;
+  color: var(--ares-text-dim);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.ares-info-panel-close:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ares-text-h);
+}
+
+.ares-info-panel-description {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ares-text);
+  margin-bottom: 12px;
+}
+
+.ares-info-panel-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding-top: 10px;
+  border-top: 1px solid var(--ares-panel-border);
+}
+
+.ares-info-panel-stat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--ares-text-dim);
+}
+
+.ares-info-panel-stat svg {
+  margin-right: 6px;
+  color: var(--ares-accent);
+}
+
+.ares-info-panel-stat-label {
+  color: var(--ares-text-dim);
+}
+
+.ares-info-panel-stat-value {
+  color: var(--ares-text-h);
+  font-weight: 600;
+}
+
+@media (max-width: 560px) {
+  .ares-info-panel {
+    left: 12px;
+    right: 12px;
+    width: auto;
+    bottom: 12px;
+  }
+}
