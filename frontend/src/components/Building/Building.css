@@ -1,0 +1,296 @@
+.ares-building {
+  position: absolute;
+  transform: translate(-50%, -100%)
+    translateY(calc(var(--ares-building-elevation, 0px) * -1))
+    scale(var(--ares-building-scale, 1));
+  transform-origin: bottom center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.45));
+}
+
+.ares-building:focus-visible .ares-shape {
+  outline: 2px solid var(--ares-accent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.ares-building-status-dot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--ares-building-status-color);
+  box-shadow: 0 0 6px 1px var(--ares-building-status-color);
+  z-index: 3;
+}
+
+.ares-building--warning .ares-building-status-dot,
+.ares-building--critical .ares-building-status-dot {
+  animation: ares-pulse-dot 1.6s ease-in-out infinite;
+}
+
+@keyframes ares-pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(1.3); }
+}
+
+.ares-building-glow {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  width: 90px;
+  height: 40px;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    ellipse at center,
+    var(--ares-building-status-color) 0%,
+    transparent 72%
+  );
+  opacity: 0.35;
+  filter: blur(4px);
+  pointer-events: none;
+  z-index: 0;
+  transition: opacity 0.25s ease;
+}
+
+.ares-building:hover .ares-building-glow,
+.ares-building.is-selected .ares-building-glow {
+  opacity: 0.6;
+}
+
+.ares-building-icon {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-top: -14px;
+  border-radius: 50%;
+  background: rgba(8, 10, 20, 0.75);
+  border: 1px solid var(--ares-panel-border);
+  color: var(--ares-text-h);
+}
+
+.ares-building-label {
+  position: relative;
+  z-index: 2;
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+  color: var(--ares-text-dim);
+  white-space: nowrap;
+  background: rgba(6, 8, 16, 0.55);
+  padding: 1px 6px;
+  border-radius: 8px;
+  transition: color 0.2s ease;
+}
+
+.ares-building:hover .ares-building-label,
+.ares-building.is-selected .ares-building-label {
+  color: var(--ares-text-h);
+}
+
+/* ── Generic shape wrapper ─────────────────────────────────────── */
+.ares-shape {
+  position: relative;
+  width: 64px;
+  height: 46px;
+  z-index: 1;
+  transition: filter 0.2s ease;
+}
+
+.ares-building:hover .ares-shape,
+.ares-building.is-selected .ares-shape {
+  filter: brightness(1.18);
+}
+
+/* ── Dome (Council / Greenhouse) ──────────────────────────────── */
+.ares-shape--dome {
+  width: 70px;
+  height: 50px;
+}
+.ares-shape-dome-base {
+  position: absolute;
+  bottom: 0;
+  left: 8%;
+  width: 84%;
+  height: 30%;
+  background: linear-gradient(180deg, #3a4155, #23283a);
+  border-radius: 4px 4px 2px 2px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.ares-shape-dome-glass {
+  position: absolute;
+  bottom: 26%;
+  left: 0;
+  width: 100%;
+  height: 65%;
+  border-radius: 50% 50% 6% 6% / 100% 100% 8% 8%;
+  background: linear-gradient(
+    180deg,
+    rgba(180, 220, 255, 0.5),
+    rgba(120, 170, 235, 0.25) 60%,
+    rgba(60, 90, 140, 0.35)
+  );
+  border: 1px solid rgba(220, 240, 255, 0.5);
+  box-shadow: inset 0 -6px 10px rgba(0, 0, 0, 0.25), 0 0 14px var(--ares-building-status-color);
+}
+
+/* ── Hab pods ──────────────────────────────────────────────────── */
+.ares-shape--hab {
+  width: 68px;
+  height: 34px;
+}
+.ares-shape-hab-pod {
+  position: absolute;
+  bottom: 0;
+  width: 30px;
+  height: 26px;
+  border-radius: 14px / 12px;
+  background: linear-gradient(160deg, #d7dde8, #9aa4bd);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 10px var(--ares-building-status-color);
+}
+.ares-shape-hab-pod--left { left: 0; }
+.ares-shape-hab-pod--right { right: 0; }
+.ares-shape-hab-link {
+  position: absolute;
+  bottom: 8px;
+  left: 26px;
+  width: 16px;
+  height: 10px;
+  background: #7d879e;
+  border-radius: 3px;
+}
+
+/* ── Lab ───────────────────────────────────────────────────────── */
+.ares-shape--lab {
+  width: 58px;
+  height: 40px;
+}
+.ares-shape-lab-block {
+  position: absolute;
+  bottom: 0;
+  left: 4px;
+  width: 50px;
+  height: 26px;
+  background: linear-gradient(160deg, #cfd6e6, #8f9ab3);
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 10px var(--ares-building-status-color);
+}
+.ares-shape-lab-antenna {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 2px;
+  height: 16px;
+  background: #b7c0d6;
+  transform: translateX(-50%);
+}
+.ares-shape-lab-antenna::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ares-building-status-color);
+  box-shadow: 0 0 6px var(--ares-building-status-color);
+}
+
+/* ── Tower (Medical Bay) ──────────────────────────────────────── */
+.ares-shape--tower {
+  width: 40px;
+  height: 50px;
+}
+.ares-shape-tower-body {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 26px;
+  height: 40px;
+  background: linear-gradient(160deg, #e3e7f0, #a3adc2);
+  border-radius: 6px 6px 3px 3px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 10px var(--ares-building-status-color);
+}
+.ares-shape-tower-cap {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 34px;
+  height: 8px;
+  background: #c94c4c;
+  border-radius: 3px;
+  opacity: 0.9;
+}
+
+/* ── Tank (Water Recycler) ────────────────────────────────────── */
+.ares-shape--tank {
+  width: 50px;
+  height: 42px;
+}
+.ares-shape-tank-cylinder {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(160deg, #bcdfe8, #4f8a99);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 10px var(--ares-building-status-color);
+}
+.ares-shape-tank-pipe {
+  position: absolute;
+  bottom: 6px;
+  right: -6px;
+  width: 14px;
+  height: 6px;
+  background: #6d7a91;
+  border-radius: 2px;
+}
+
+/* ── Panel array (Solar Farm) ─────────────────────────────────── */
+.ares-shape--panel-array {
+  width: 84px;
+  height: 34px;
+}
+.ares-shape-panel {
+  position: absolute;
+  bottom: 4px;
+  width: 24px;
+  height: 20px;
+  background: linear-gradient(160deg, #3f78c9, #16305a);
+  border: 1px solid rgba(140, 200, 255, 0.5);
+  border-radius: 2px;
+  box-shadow: 0 0 8px var(--ares-building-status-color);
+  transform: skewX(-8deg);
+}
+.ares-shape-panel:nth-child(1) { left: 0; }
+.ares-shape-panel:nth-child(2) { left: 30px; bottom: 8px; }
+.ares-shape-panel:nth-child(3) { left: 60px; }
+.ares-shape-mast {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3px;
+  height: 14px;
+  background: #7d879e;
+}

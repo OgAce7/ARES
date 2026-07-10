@@ -1,0 +1,179 @@
+.ares-lunar-world {
+  position: relative;
+  width: 100%;
+  min-height: 100svh;
+  overflow: hidden;
+  background: var(--ares-bg-deep);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Sky ────────────────────────────────────────────────────────── */
+.ares-sky {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 58%;
+  background: linear-gradient(
+    180deg,
+    #05060c 0%,
+    #0a0e1e 35%,
+    #141a30 65%,
+    #23223a 100%
+  );
+  overflow: hidden;
+}
+
+.ares-sky-glow {
+  position: absolute;
+  bottom: -10%;
+  left: 0;
+  width: 100%;
+  height: 40%;
+  background: linear-gradient(180deg, transparent, rgba(111, 215, 255, 0.08));
+  pointer-events: none;
+}
+
+/* ── Terrain ────────────────────────────────────────────────────── */
+.ares-terrain {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 64%;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.05), transparent 60%),
+    linear-gradient(180deg, #3a3a46 0%, #232430 45%, #17171f 100%);
+  box-shadow: inset 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.ares-terrain::before {
+  /* subtle regolith texture using repeating gradients */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+      120deg,
+      rgba(255, 255, 255, 0.02) 0px,
+      rgba(255, 255, 255, 0.02) 2px,
+      transparent 2px,
+      transparent 14px
+    ),
+    repeating-linear-gradient(
+      60deg,
+      rgba(0, 0, 0, 0.06) 0px,
+      rgba(0, 0, 0, 0.06) 2px,
+      transparent 2px,
+      transparent 18px
+    );
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.ares-crater {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at 50% 35%,
+    rgba(0, 0, 0, 0.4),
+    rgba(0, 0, 0, 0.15) 60%,
+    transparent 75%
+  );
+  box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.04);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.ares-ambient-light {
+  position: absolute;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  filter: blur(6px);
+  pointer-events: none;
+  mix-blend-mode: screen;
+  animation: ares-ambient-flicker 5s ease-in-out infinite;
+}
+
+@keyframes ares-ambient-flicker {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+/* ── HUD overlay ────────────────────────────────────────────────── */
+.ares-hud-layer {
+  position: relative;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 18px 22px;
+  pointer-events: none;
+}
+
+.ares-hud-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.ares-hud-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: auto;
+}
+
+.ares-hud-brand-mark {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ares-accent);
+  box-shadow: 0 0 10px 2px var(--ares-accent);
+  flex-shrink: 0;
+}
+
+.ares-hud-brand h1 {
+  font-size: 19px;
+  letter-spacing: 0.08em;
+}
+
+.ares-hud-brand p {
+  font-size: 11px;
+  color: var(--ares-text-dim);
+  margin-top: 1px;
+}
+
+.ares-hud-top-right {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+  pointer-events: auto;
+}
+
+.ares-hud-hint {
+  position: absolute;
+  top: 84px;
+  left: 22px;
+  font-size: 12px;
+  color: var(--ares-text-dim);
+  background: var(--ares-panel);
+  border: 1px solid var(--ares-panel-border);
+  padding: 6px 12px;
+  border-radius: 10px;
+  backdrop-filter: blur(8px);
+}
+
+@media (max-width: 720px) {
+  .ares-hud-layer {
+    padding: 14px;
+  }
+  .ares-hud-hint {
+    left: 14px;
+    top: auto;
+    bottom: 90px;
+  }
+}
