@@ -2,21 +2,23 @@
 ARES backend entrypoint.
 
 Exposes:
-  GET  /health  - liveness check
-  GET  /state   - current in-memory habitat state
-  POST /reset   - reset habitat state to seed values
-  POST /tick    - advance the simulation by N simulated hours (default 1)
+  GET  /health          - liveness check
+  GET  /state           - current in-memory habitat state
+  POST /reset            - reset habitat state to seed values
+  POST /tick              - advance the simulation by N simulated hours (default 1)
+  GET  /sustainability  - Habitat Sustainability Index (0-100) for current state
 
 Prediction, optimization, and persistence still live outside this file —
-this is the state + tick foundation those future modules will build on.
+this is the state + tick + sustainability foundation those future modules will build on.
 """
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.models import HabitatState, TickRequest, TickResponse
+from app.models import HabitatState, SustainabilityResponse, TickRequest, TickResponse
 from app.simulation import run_tick
 from app.state import habitat_state, reset_state
+from app.sustainability import compute_sustainability_index
 
 app = FastAPI(
     title="ARES Habitat Simulation Backend",
@@ -60,4 +62,15 @@ def tick(request: TickRequest | None = None) -> TickResponse:
         state=updated_state,
         resource_deltas=resource_deltas,
         status_changes=status_changes,
+    )
+
+
+@app.get("/sustainability", response_model=SustainabilityResponse)
+def sustainability() -> SustainabilityResponse:
+    overall_score, classification, component_scores, key_factors = compute_sustainability_index(habitat_state)
+    return SustainabilityResponse(
+        overall_score=overall_score,
+        classification=classification,
+        component_scores=component_scores,
+        key_factors=key_factors,
     )

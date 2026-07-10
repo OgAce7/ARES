@@ -90,3 +90,22 @@ class TickResponse(BaseModel):
     resource_deltas: dict[str, float]  # net change in current_level per resource over this tick
     status_changes: list[str]  # human-readable notes on any resource/module status transitions
 
+
+class SustainabilityComponentScores(BaseModel):
+    """The four 0-100 sub-scores that make up the overall sustainability index."""
+
+    resource_stability: float
+    reserve_longevity: float
+    allocation_efficiency: float
+    emergency_resilience: float
+
+
+class SustainabilityResponse(BaseModel):
+    """Result of GET /sustainability."""
+
+    overall_score: float
+    classification: str  # "Thriving" | "Stable" | "Vulnerable" | "Critical"
+    component_scores: SustainabilityComponentScores
+    key_factors: list[str]  # short, human-readable notes on what is driving the score
+
+
