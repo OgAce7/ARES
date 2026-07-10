@@ -109,3 +109,25 @@ class SustainabilityResponse(BaseModel):
     key_factors: list[str]  # short, human-readable notes on what is driving the score
 
 
+class ResourcePrediction(BaseModel):
+    """Shortage prediction for a single resource."""
+
+    resource: str
+    current_level: float
+    critical_threshold: float
+    net_rate_per_hour: float  # positive = growing, negative = depleting
+    hours_to_critical: float | None  # None if not currently depleting
+    risk_level: str  # "safe" | "watch" | "warning" | "critical"
+    primary_factors: list[str]  # plain-language notes on what's driving the net rate
+
+
+class PredictionResponse(BaseModel):
+    """Result of GET /prediction."""
+
+    resources: list[ResourcePrediction]
+    nearest_shortage: str | None  # resource name with the soonest predicted critical crossing, if any
+    hours_to_nearest_critical: float | None
+    overall_risk: str  # the most severe risk_level across all resources
+
+
+

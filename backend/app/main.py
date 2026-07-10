@@ -7,15 +7,18 @@ Exposes:
   POST /reset            - reset habitat state to seed values
   POST /tick              - advance the simulation by N simulated hours (default 1)
   GET  /sustainability  - Habitat Sustainability Index (0-100) for current state
+  GET  /prediction       - emergency shortage prediction per resource
 
-Prediction, optimization, and persistence still live outside this file —
-this is the state + tick + sustainability foundation those future modules will build on.
+Optimization, scenario injection, and persistence still live outside this
+file — this is the state + tick + sustainability + prediction foundation
+those future modules will build on.
 """
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.models import HabitatState, SustainabilityResponse, TickRequest, TickResponse
+from app.models import HabitatState, PredictionResponse, SustainabilityResponse, TickRequest, TickResponse
+from app.prediction import compute_prediction
 from app.simulation import run_tick
 from app.state import habitat_state, reset_state
 from app.sustainability import compute_sustainability_index
@@ -74,3 +77,8 @@ def sustainability() -> SustainabilityResponse:
         component_scores=component_scores,
         key_factors=key_factors,
     )
+
+
+@app.get("/prediction", response_model=PredictionResponse)
+def prediction() -> PredictionResponse:
+    return compute_prediction(habitat_state)
