@@ -2,22 +2,33 @@
 ARES backend entrypoint.
 
 Exposes:
-  GET  /health          - liveness check
-  GET  /state           - current in-memory habitat state
-  POST /reset            - reset habitat state to seed values
-  POST /tick              - advance the simulation by N simulated hours (default 1)
-  GET  /sustainability  - Habitat Sustainability Index (0-100) for current state
-  GET  /prediction       - emergency shortage prediction per resource
+  GET  /health             - liveness check
+  GET  /state              - current in-memory habitat state
+  POST /reset               - reset habitat state to seed values
+  POST /tick                 - advance the simulation by N simulated hours (default 1)
+  GET  /sustainability     - Habitat Sustainability Index (0-100) for current state
+  GET  /prediction          - emergency shortage prediction per resource
+  POST /optimize/preview    - proposed reallocation plan, state unchanged
+  POST /optimize/apply      - apply a plan (given or freshly computed) to live state
 
-Optimization, scenario injection, and persistence still live outside this
-file — this is the state + tick + sustainability + prediction foundation
-those future modules will build on.
+Scenario injection, persistence, and LLM logic still live outside this
+file — this is the state + tick + sustainability + prediction +
+allocation foundation those future modules will build on.
 """
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.models import HabitatState, PredictionResponse, SustainabilityResponse, TickRequest, TickResponse
+from app.models import (
+    ApplyOptimizationRequest,
+    HabitatState,
+    OptimizationPlan,
+    PredictionResponse,
+    SustainabilityResponse,
+    TickRequest,
+    TickResponse,
+)
+from app.optimization import apply_plan, generate_plan
 from app.prediction import compute_prediction
 from app.simulation import run_tick
 from app.state import habitat_state, reset_state
@@ -82,3 +93,22 @@ def sustainability() -> SustainabilityResponse:
 @app.get("/prediction", response_model=PredictionResponse)
 def prediction() -> PredictionResponse:
     return compute_prediction(habitat_state)
+
+
+@app.post("/optimize/preview", response_model=OptimizationPlan)
+def optimize_preview() -> OptimizationPlan:
+    """Compute a reallocation plan without mutating state."""
+    return generate_plan(habitat_state)
+
+
+@app.post("/optimize/apply", response_model=OptimizationPlan)
+def optimize_apply(request: ApplyOptimizationRequest | None = None) -> OptimizationPlan:
+    """
+    Apply a reallocation plan to live state. If a plan is supplied in the
+    request body (e.g. one previously returned by /optimize/preview), it
+    is applied as-is (after re-validating against current minimum-safe
+    allocations). Otherwise a fresh plan is computed from current state
+    and applied immediately.
+    """
+    plan = request.plan if request and request.plan else generate_plan(habitat_state)
+    return apply_plan(habitat_state, plan)
