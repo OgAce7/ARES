@@ -130,4 +130,46 @@ class PredictionResponse(BaseModel):
     overall_risk: str  # the most severe risk_level across all resources
 
 
+class ModuleAllocationChange(BaseModel):
+    """Before/after allocation for a single module, with deterministic reasons."""
+
+    module_id: str
+    display_name: str
+    before: ModuleAllocation
+    after: ModuleAllocation
+    protected: bool
+    reasons: list[str]
+
+
+class ResourceEffect(BaseModel):
+    """Before/after outlook for a single resource, used to explain plan impact."""
+
+    resource: str
+    hours_to_critical_before: float | None
+    hours_to_critical_after: float | None
+    risk_before: str
+    risk_after: str
+
+
+class OptimizationPlan(BaseModel):
+    """Result of POST /optimize/preview and POST /optimize/apply."""
+
+    generated_at_tick: int
+    applied: bool = False
+    module_changes: list[ModuleAllocationChange]
+    protected_modules: list[str]
+    unresolved_shortages: list[str]
+    predicted_effect: list[ResourceEffect]
+    sustainability_before: float
+    sustainability_after: float
+    sustainability_delta: float
+    summary: list[str]
+
+
+class ApplyOptimizationRequest(BaseModel):
+    """Optional input to POST /optimize/apply."""
+
+    plan: OptimizationPlan | None = None
+
+
 
