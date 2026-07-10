@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { BUILDINGS, ASTRONAUTS, AMBIENT_LIGHTS, CRATERS } from '../../data/worldConfig';
-import { RESOURCES, SUSTAINABILITY, MODULE_STATUS } from '../../data/mockData';
+import { useHabitatData, LOAD_STATUS } from '../../hooks/useHabitatData';
 import Starfield from '../Starfield/Starfield';
 import Earth from '../Earth/Earth';
 import Building from '../Building/Building';
@@ -11,12 +11,27 @@ import BuildingInfoPanel from '../BuildingInfoPanel/BuildingInfoPanel';
 import './LunarWorld.css';
 
 // LunarWorld is the visual shell of Mission Control: a 2.5D lunar colony
-// built entirely from layered CSS/SVG + Framer Motion. All state here is
-// local UI state (selection/hover) — see mockData.js for the placeholder
-// resource/status data that will eventually come from a backend.
+// built entirely from layered CSS/SVG + Framer Motion. Resource/sustainability/
+// module data is live, sourced from the ARES FastAPI backend via
+// useHabitatData() (see hooks/useHabitatData.js). Selection/hover remain
+// local UI state. Simulation time only advances when the user explicitly
+// requests it (POST /tick) — there is no background polling.
 export default function LunarWorld() {
   const [selectedId, setSelectedId] = useState(null);
   const [hoveredId, setHoveredId] = useState(null);
+
+  const {
+    status,
+    errorMessage,
+    isMock,
+    resources,
+    sustainability,
+    moduleStatus,
+    tickCount,
+    isTicking,
+    runTick,
+    retry,
+  } = useHabitatData();
 
   const selectedBuilding = useMemo(
     () => BUILDINGS.find((b) => b.id === selectedId) || null,
@@ -69,7 +84,7 @@ export default function LunarWorld() {
           <Building
             key={building.id}
             building={building}
-            status={MODULE_STATUS[building.id]?.status}
+            status={moduleStatus[building.id]?.status}
             isSelected={selectedId === building.id}
             onSelect={handleSelect}
             onHover={setHoveredId}
@@ -92,10 +107,35 @@ export default function LunarWorld() {
             </div>
           </div>
           <div className="ares-hud-top-right">
-            <ResourceHUD resources={RESOURCES} />
-            <SustainabilityBadge sustainability={SUSTAINABILITY} />
+            {isMock && <span className="ares-mock-badge">MOCK DATA</span>}
+            <button
+              type="button"
+              className="ares-tick-button"
+              onClick={() => runTick(1)}
+              disabled={isMock || isTicking || status === LOAD_STATUS.LOADING}
+              title="Advance the simulation by 1 hour (POST /tick)"
+            >
+              {isTicking ? 'Advancing…' : `Advance +1h`}
+              <span className="ares-tick-count">t={tickCount}</span>
+            </button>
+            <ResourceHUD resources={resources} />
+            <SustainabilityBadge sustainability={sustainability} />
           </div>
         </div>
+
+        {status === LOAD_STATUS.ERROR && (
+          <div className="ares-backend-banner ares-backend-banner--error">
+            <span>Backend unavailable{errorMessage ? `: ${errorMessage}` : '.'}</span>
+            <button type="button" onClick={retry}>Retry</button>
+          </div>
+        )}
+
+        {status === LOAD_STATUS.LOADING && (
+          <div className="ares-backend-banner ares-backend-banner--loading">
+            <span className="ares-loading-spinner" />
+            <span>Connecting to ARES backend…</span>
+          </div>
+        )}
 
         {hoveredId && !selectedId && (
           <div className="ares-hud-hint">
@@ -105,7 +145,7 @@ export default function LunarWorld() {
 
         <BuildingInfoPanel
           building={selectedBuilding}
-          moduleStatus={selectedId ? MODULE_STATUS[selectedId] : null}
+          moduleStatus={selectedId ? moduleStatus[selectedId] : null}
           onClose={() => setSelectedId(null)}
         />
       </div>
