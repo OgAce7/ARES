@@ -75,3 +75,18 @@ class HabitatState(BaseModel):
     modules: dict[str, HabitatModule]
     astronauts: list[Astronaut]
     simulation: SimulationMeta
+
+
+class TickRequest(BaseModel):
+    """Optional input to POST /tick."""
+
+    simulated_hours: float = Field(default=1.0, gt=0, description="Hours to advance the simulation by.")
+
+
+class TickResponse(BaseModel):
+    """Result of advancing the simulation by one tick."""
+
+    state: HabitatState
+    resource_deltas: dict[str, float]  # net change in current_level per resource over this tick
+    status_changes: list[str]  # human-readable notes on any resource/module status transitions
+
