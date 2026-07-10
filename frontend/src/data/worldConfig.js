@@ -40,6 +40,7 @@ export const BUILDING_KIND = {
   TOWER: 'tower',
   PANEL_ARRAY: 'panel-array',
   TANK: 'tank',
+  CAPITOL: 'capitol',
 };
 
 // x / y are percentages (0-100) across the world stage.
@@ -49,7 +50,7 @@ export const BUILDINGS = [
   {
     id: 'council',
     name: 'ARES Council',
-    kind: BUILDING_KIND.DOME,
+    kind: BUILDING_KIND.CAPITOL,
     icon: 'Landmark',
     position: { x: 50, y: 56 },
     scale: 1.55,

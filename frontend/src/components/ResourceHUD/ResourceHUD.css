@@ -87,6 +87,46 @@
 .ares-resource-chip--up .ares-resource-chip-value { color: var(--ares-status-stable); }
 .ares-resource-chip--down .ares-resource-chip-value { color: var(--ares-status-warning); }
 
+/* Risk-driven styling (from GET /prediction risk_level) — layered on top of
+   the trend classes above so a resource can visibly enter warning/critical
+   state even when the momentary net rate looks flat. */
+.ares-resource-chip--risk-warning {
+  border-color: rgba(255, 204, 92, 0.5);
+}
+.ares-resource-chip--risk-warning .ares-resource-chip-icon {
+  background: rgba(255, 204, 92, 0.16);
+  color: var(--ares-status-warning);
+}
+.ares-resource-chip--risk-warning .ares-resource-bar-fill {
+  background: linear-gradient(90deg, #ffcc5c, #ff9c5c);
+}
+
+.ares-resource-chip--risk-critical {
+  border-color: var(--ares-status-critical);
+  animation: ares-resource-risk-pulse 1.6s ease-in-out infinite;
+}
+.ares-resource-chip--risk-critical .ares-resource-chip-icon {
+  background: rgba(255, 97, 97, 0.18);
+  color: var(--ares-status-critical);
+}
+.ares-resource-chip--risk-critical .ares-resource-chip-value {
+  color: var(--ares-status-critical);
+}
+.ares-resource-chip--risk-critical .ares-resource-bar-fill {
+  background: linear-gradient(90deg, #ff6161, #ff8c61);
+}
+
+@keyframes ares-resource-risk-pulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(255, 97, 97, 0); }
+  50% { box-shadow: 0 0 12px rgba(255, 97, 97, 0.45); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ares-resource-chip--risk-critical {
+    animation: none;
+  }
+}
+
 .ares-resource-tooltip {
   position: absolute;
   top: calc(100% + 8px);

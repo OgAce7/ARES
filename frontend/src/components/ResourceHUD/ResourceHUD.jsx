@@ -12,10 +12,11 @@ const TREND_ICON = {
 function ResourceChip({ id, resource, isHovered, onHover }) {
   const Icon = Icons[resource.icon] || Icons.Gauge;
   const TrendIcon = Icons[TREND_ICON[resource.trend]] || Icons.Minus;
+  const riskClass = resource.risk === 'critical' || resource.risk === 'warning' ? ` ares-resource-chip--risk-${resource.risk}` : '';
 
   return (
     <div
-      className={`ares-resource-chip${isHovered ? ' is-hovered' : ''} ares-resource-chip--${resource.trend}`}
+      className={`ares-resource-chip${isHovered ? ' is-hovered' : ''} ares-resource-chip--${resource.trend}${riskClass}`}
       onMouseEnter={() => onHover(id)}
       onMouseLeave={() => onHover(null)}
     >

@@ -9,7 +9,27 @@ import ResourceHUD from '../ResourceHUD/ResourceHUD';
 import SustainabilityBadge from '../SustainabilityBadge/SustainabilityBadge';
 import BuildingInfoPanel from '../BuildingInfoPanel/BuildingInfoPanel';
 import CouncilPanel from '../CouncilPanel/CouncilPanel';
+import EventSimulator from '../EventSimulator/EventSimulator';
 import './LunarWorld.css';
+
+// Maps each active scenario to the single building visual-reaction effect
+// it drives, and which building that effect lands on. habitat_breach's
+// target is dynamic (whichever module was actually breached), the other
+// two always target the same fixed facility.
+function buildScenarioEffects(activeScenarios) {
+  const effects = {};
+  if (activeScenarios?.solar_flare) {
+    effects['solar-farm'] = 'energy-instability';
+  }
+  if (activeScenarios?.water_recycler_failure) {
+    effects['water-recycler'] = 'water-alert';
+  }
+  const breach = activeScenarios?.habitat_breach;
+  if (breach?.targetModuleId) {
+    effects[breach.targetModuleId] = 'oxygen-leak';
+  }
+  return effects;
+}
 
 // LunarWorld is the visual shell of Mission Control: a 2.5D lunar colony
 // built entirely from layered CSS/SVG + Framer Motion. Resource/sustainability/
@@ -29,6 +49,7 @@ export default function LunarWorld() {
     resources,
     sustainability,
     moduleStatus,
+    activeScenarios,
     tickCount,
     isTicking,
     runTick,
@@ -40,6 +61,8 @@ export default function LunarWorld() {
     () => BUILDINGS.find((b) => b.id === selectedId) || null,
     [selectedId]
   );
+
+  const scenarioEffects = useMemo(() => buildScenarioEffects(activeScenarios), [activeScenarios]);
 
   const handleSelect = (id) => {
     setSelectedId((current) => (current === id ? null : id));
@@ -89,6 +112,7 @@ export default function LunarWorld() {
             building={building}
             status={moduleStatus[building.id]?.status}
             isSelected={selectedId === building.id}
+            effect={scenarioEffects[building.id] ?? null}
             onSelect={handleSelect}
             onHover={setHoveredId}
           />
@@ -121,6 +145,12 @@ export default function LunarWorld() {
               {isTicking ? 'Advancing…' : `Advance +1h`}
               <span className="ares-tick-count">t={tickCount}</span>
             </button>
+            <EventSimulator
+              activeScenarios={activeScenarios}
+              isMock={isMock}
+              disabled={isMock || status === LOAD_STATUS.LOADING}
+              onScenarioChange={refreshState}
+            />
             <ResourceHUD resources={resources} />
             <SustainabilityBadge sustainability={sustainability} />
           </div>

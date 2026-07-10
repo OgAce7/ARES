@@ -69,4 +69,12 @@ export const aresApi = {
   getPrediction: () => request('/prediction'),
   optimizePreview: () => request('/optimize/preview', { method: 'POST' }),
   optimizeApply: (plan = null) => request('/optimize/apply', { method: 'POST', body: { plan } }),
+  getScenarios: () => request('/scenarios'),
+  triggerScenario: (scenarioId, targetModule = null) =>
+    request('/scenario/trigger', {
+      method: 'POST',
+      body: { scenario_id: scenarioId, target_module: targetModule },
+    }),
+  clearScenario: (scenarioId) =>
+    request('/scenario/clear', { method: 'POST', body: { scenario_id: scenarioId } }),
 };

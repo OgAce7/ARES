@@ -146,6 +146,89 @@
   box-shadow: inset 0 -6px 10px rgba(0, 0, 0, 0.25), 0 0 14px var(--ares-building-status-color);
 }
 
+/* ── Capitol (ARES Council — distinct from Greenhouse dome) ──────── */
+.ares-shape--capitol {
+  width: 76px;
+  height: 58px;
+}
+.ares-shape-capitol-steps {
+  position: absolute;
+  bottom: 0;
+  left: 2%;
+  width: 96%;
+  height: 10%;
+  background: linear-gradient(180deg, #2c3244, #1a1e2c);
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.ares-shape-capitol-base {
+  position: absolute;
+  bottom: 9%;
+  left: 10%;
+  width: 80%;
+  height: 18%;
+  background: linear-gradient(180deg, #3d445c, #262b3c);
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.ares-shape-capitol-colonnade {
+  position: absolute;
+  bottom: 25%;
+  left: 14%;
+  width: 72%;
+  height: 24%;
+  display: flex;
+  justify-content: space-between;
+}
+.ares-shape-capitol-colonnade span {
+  width: 8%;
+  height: 100%;
+  background: linear-gradient(180deg, #c9cfe0, #7d859e);
+  border-radius: 1px;
+  box-shadow: 0 0 6px var(--ares-building-status-color);
+}
+.ares-shape-capitol-dome {
+  position: absolute;
+  bottom: 46%;
+  left: 16%;
+  width: 68%;
+  height: 40%;
+  border-radius: 50% 50% 8% 8% / 100% 100% 10% 10%;
+  background: linear-gradient(
+    180deg,
+    rgba(210, 180, 255, 0.55),
+    rgba(150, 120, 220, 0.3) 60%,
+    rgba(90, 70, 150, 0.4)
+  );
+  border: 1px solid rgba(230, 210, 255, 0.55);
+  box-shadow: inset 0 -6px 10px rgba(0, 0, 0, 0.25), 0 0 16px var(--ares-glow-council);
+}
+.ares-shape-capitol-beacon {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  width: 2px;
+  height: 16px;
+  background: rgba(230, 210, 255, 0.8);
+  transform: translateX(-50%);
+}
+.ares-shape-capitol-beacon::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ares-accent-2);
+  box-shadow: 0 0 10px 2px var(--ares-accent-2);
+  animation: ares-beacon-pulse 2.4s ease-in-out infinite;
+}
+@keyframes ares-beacon-pulse {
+  0%, 100% { opacity: 0.75; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.25); }
+}
+
 /* ── Hab pods ──────────────────────────────────────────────────── */
 .ares-shape--hab {
   width: 68px;
@@ -293,4 +376,71 @@
   width: 3px;
   height: 14px;
   background: #7d879e;
+}
+
+/* ── Scenario visual reactions ─────────────────────────────────── */
+
+/* solar_flare: subtle energy instability flicker on the solar farm */
+.ares-building--effect-energy-instability .ares-shape {
+  animation: ares-energy-instability 2.6s ease-in-out infinite;
+}
+
+@keyframes ares-energy-instability {
+  0%, 100% { filter: brightness(1); }
+  40% { filter: brightness(1.35); }
+  46% { filter: brightness(0.75); }
+  52% { filter: brightness(1.2); }
+  60% { filter: brightness(0.95); }
+}
+
+/* water_recycler_failure: slow warning pulse on the recycler */
+.ares-building--effect-water-alert .ares-building-glow {
+  animation: ares-water-alert-pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes ares-water-alert-pulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.75; }
+}
+
+/* habitat_breach: lightweight rising "vapor" wisps above the affected module */
+.ares-building-oxygen-leak {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  width: 40px;
+  height: 30px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.ares-building-oxygen-leak span {
+  position: absolute;
+  bottom: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(220, 235, 255, 0.75);
+  box-shadow: 0 0 5px rgba(180, 220, 255, 0.7);
+  animation: ares-oxygen-wisp 2.4s ease-in infinite;
+}
+
+.ares-building-oxygen-leak span:nth-child(1) { left: 6px; animation-delay: 0s; }
+.ares-building-oxygen-leak span:nth-child(2) { left: 18px; animation-delay: 0.7s; }
+.ares-building-oxygen-leak span:nth-child(3) { left: 30px; animation-delay: 1.4s; }
+
+@keyframes ares-oxygen-wisp {
+  0% { transform: translateY(0) scale(1); opacity: 0.8; }
+  80% { opacity: 0.4; }
+  100% { transform: translateY(-26px) scale(0.4); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ares-building--effect-energy-instability .ares-shape,
+  .ares-building--effect-water-alert .ares-building-glow,
+  .ares-building-oxygen-leak span,
+  .ares-shape-capitol-beacon::after {
+    animation: none;
+  }
 }

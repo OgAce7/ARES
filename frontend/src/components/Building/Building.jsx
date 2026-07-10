@@ -53,12 +53,27 @@ function BuildingShape({ kind }) {
           <div className="ares-shape-mast" />
         </div>
       );
+    case 'capitol':
+      return (
+        <div className="ares-shape ares-shape--capitol">
+          <div className="ares-shape-capitol-beacon" />
+          <div className="ares-shape-capitol-dome" />
+          <div className="ares-shape-capitol-colonnade">
+            <span />
+            <span />
+            <span />
+            <span />
+          </div>
+          <div className="ares-shape-capitol-base" />
+          <div className="ares-shape-capitol-steps" />
+        </div>
+      );
     default:
       return <div className="ares-shape ares-shape--hab" />;
   }
 }
 
-export default function Building({ building, status, isSelected, onSelect, onHover }) {
+export default function Building({ building, status, isSelected, effect, onSelect, onHover }) {
   const { id, name, kind, icon, position, scale, elevation, zIndex } = building;
   const statusMeta = STATUS_META[status] || STATUS_META.stable;
   const Icon = Icons[icon] || Icons.Building2;
@@ -66,7 +81,9 @@ export default function Building({ building, status, isSelected, onSelect, onHov
   return (
     <motion.button
       type="button"
-      className={`ares-building ares-building--${status}${isSelected ? ' is-selected' : ''}`}
+      className={`ares-building ares-building--${status}${isSelected ? ' is-selected' : ''}${
+        effect ? ` ares-building--effect-${effect}` : ''
+      }`}
       style={{
         left: `${position.x}%`,
         top: `${position.y}%`,
@@ -85,10 +102,17 @@ export default function Building({ building, status, isSelected, onSelect, onHov
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
-      aria-label={`${name} — status ${statusMeta.label}`}
+      aria-label={`${name} — status ${statusMeta.label}${effect ? `, active event: ${effect.replace('-', ' ')}` : ''}`}
     >
       <span className="ares-building-status-dot" />
       <div className="ares-building-glow" />
+      {effect === 'oxygen-leak' && (
+        <div className="ares-building-oxygen-leak" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
+      )}
       <BuildingShape kind={kind} />
       <div className="ares-building-icon">
         <Icon size={14} strokeWidth={2.2} />

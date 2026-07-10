@@ -23,7 +23,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { aresApi } from '../services/aresApi';
-import { adaptResources, adaptSustainability, adaptModuleStatus } from '../services/adapters';
+import { adaptResources, adaptSustainability, adaptModuleStatus, adaptActiveScenarios } from '../services/adapters';
 import { RESOURCES as MOCK_RESOURCES, SUSTAINABILITY as MOCK_SUSTAINABILITY, MODULE_STATUS as MOCK_MODULE_STATUS } from '../data/mockData';
 
 const MOCK_FALLBACK_ENABLED = import.meta.env.VITE_ARES_MOCK_FALLBACK === 'true';
@@ -41,6 +41,7 @@ export function useHabitatData() {
   const [resources, setResources] = useState(MOCK_RESOURCES);
   const [sustainability, setSustainability] = useState(MOCK_SUSTAINABILITY);
   const [moduleStatus, setModuleStatus] = useState(MOCK_MODULE_STATUS);
+  const [activeScenarios, setActiveScenarios] = useState({});
   const [tickCount, setTickCount] = useState(0);
   const [isTicking, setIsTicking] = useState(false);
 
@@ -75,7 +76,8 @@ export function useHabitatData() {
     if (!mountedRef.current) return;
 
     setResources(adaptResources(habitatState.resources, predictionData));
-    setModuleStatus(adaptModuleStatus(habitatState.modules, habitatState.astronauts));
+    setModuleStatus(adaptModuleStatus(habitatState.modules, habitatState.astronauts, habitatState.active_scenarios));
+    setActiveScenarios(adaptActiveScenarios(habitatState.active_scenarios));
     setTickCount(habitatState.simulation.tick_count);
     if (sustainabilityData) {
       setSustainability(adaptSustainability(sustainabilityData, previousScoreRef.current));
@@ -149,6 +151,7 @@ export function useHabitatData() {
     resources,
     sustainability,
     moduleStatus,
+    activeScenarios,
     tickCount,
     isTicking,
     runTick,

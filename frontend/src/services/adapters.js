@@ -13,7 +13,7 @@ import { STATUS } from '../data/worldConfig';
 // the backend keys modules with underscores ('habitat_alpha'). This is the
 // one real naming mismatch between the two sides — bridge it explicitly
 // here rather than touching either the backend or worldConfig.js.
-const BACKEND_TO_FRONTEND_ID = {
+export const BACKEND_TO_FRONTEND_ID = {
   council: 'council',
   habitat_alpha: 'habitat-alpha',
   habitat_beta: 'habitat-beta',
@@ -90,6 +90,7 @@ export function adaptResources(resources, prediction) {
       value: Math.max(0, Math.min(100, pct)),
       unit: '%',
       trend: resourceTrend(pred?.net_rate_per_hour),
+      risk: pred?.risk_level ?? null,
       detail,
     };
   }
@@ -120,25 +121,59 @@ export function adaptSustainability(sustainability, previousScore = null) {
  * Build the MODULE_STATUS dict (keyed by frontend hyphenated building id)
  * that BuildingInfoPanel / Building expect, from live HabitatState.modules
  * + astronauts.
+ *
+ * `activeScenarios` (HabitatState.active_scenarios) is optional context used
+ * for exactly one edge case: solar_flare caps solar_farm's own energy
+ * allocation, but solar_farm's minimum-safe energy floor is 0%, so the
+ * backend's allocation-vs-floor status logic never flags it — the module
+ * stays "nominal" even mid-flare. Rather than inventing a fake status, we
+ * surface the *real* active_scenarios fact (a solar_flare is genuinely
+ * active) as a "warning" floor for that one module's visual state.
  */
-export function adaptModuleStatus(modules, astronauts) {
+export function adaptModuleStatus(modules, astronauts, activeScenarios = {}) {
   const crewByModule = {};
   for (const astronaut of astronauts ?? []) {
     crewByModule[astronaut.current_location] = (crewByModule[astronaut.current_location] ?? 0) + 1;
   }
 
+  const solarFlareActive = Boolean(activeScenarios?.solar_flare);
+
   const adapted = {};
   for (const [backendId, module] of Object.entries(modules)) {
     const frontendId = BACKEND_TO_FRONTEND_ID[backendId] ?? backendId;
     const alloc = module.current_allocation;
+    let status = normalizeStatus(module.status);
+    if (solarFlareActive && backendId === 'solar_farm' && status === STATUS.STABLE) {
+      status = STATUS.WARNING;
+    }
     adapted[frontendId] = {
-      status: normalizeStatus(module.status),
+      status,
       crew: crewByModule[backendId] ?? 0,
       stats: [
         { label: 'O2 Allocation', value: `${Math.round(alloc.oxygen)}%` },
         { label: 'Water Allocation', value: `${Math.round(alloc.water)}%` },
         { label: 'Energy Allocation', value: `${Math.round(alloc.energy)}%` },
       ],
+    };
+  }
+  return adapted;
+}
+
+/**
+ * Build a simple { [scenario_id]: { targetModuleId } } map — keyed by the
+ * frontend hyphenated building id where relevant — from the live
+ * HabitatState.active_scenarios dict, for driving the Council's active
+ * scenario indicator and the per-building visual reaction effects.
+ */
+export function adaptActiveScenarios(activeScenarios) {
+  const adapted = {};
+  for (const [scenarioId, active] of Object.entries(activeScenarios ?? {})) {
+    adapted[scenarioId] = {
+      scenarioId,
+      targetModuleId: active.target_module
+        ? BACKEND_TO_FRONTEND_ID[active.target_module] ?? active.target_module
+        : null,
+      triggeredAtTick: active.triggered_at_tick,
     };
   }
   return adapted;
