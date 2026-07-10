@@ -68,6 +68,20 @@ class SimulationMeta(BaseModel):
     notes: str = "All values are illustrative simulation data, not real NASA figures."
 
 
+class ActiveScenario(BaseModel):
+    """
+    Bookkeeping for a currently-active emergency scenario modifier, including
+    the pre-scenario baseline values needed to cleanly restore state later
+    via POST /scenario/clear.
+    """
+
+    scenario_id: str
+    target_module: str | None = None
+    triggered_at_tick: int
+    numeric_baseline: dict[str, float]  # "kind:entity_id:field" -> original value
+    status_baseline: dict[str, str]  # module_id -> original module.status
+
+
 class HabitatState(BaseModel):
     """The full in-memory state of the lunar habitat simulation."""
 
@@ -75,6 +89,7 @@ class HabitatState(BaseModel):
     modules: dict[str, HabitatModule]
     astronauts: list[Astronaut]
     simulation: SimulationMeta
+    active_scenarios: dict[str, ActiveScenario] = Field(default_factory=dict)
 
 
 class TickRequest(BaseModel):
@@ -170,6 +185,58 @@ class ApplyOptimizationRequest(BaseModel):
     """Optional input to POST /optimize/apply."""
 
     plan: OptimizationPlan | None = None
+
+
+class ScenarioInfo(BaseModel):
+    """Static metadata describing one available emergency scenario."""
+
+    scenario_id: str
+    name: str
+    description: str
+    requires_target_module: bool
+    effect_summary: list[str]  # plain-language list of what the scenario modifies
+
+
+class StateChange(BaseModel):
+    """A single explicit state field change made by a scenario trigger/clear."""
+
+    target: str  # e.g. "resource:energy" or "module:solar_farm"
+    field: str  # e.g. "generation_rate" or "current_allocation.energy"
+    before: float | str
+    after: float | str
+    note: str
+
+
+class ScenarioTriggerRequest(BaseModel):
+    """Input to POST /scenario/trigger."""
+
+    scenario_id: str
+    target_module: str | None = None
+
+
+class ScenarioTriggerResponse(BaseModel):
+    """Result of POST /scenario/trigger."""
+
+    scenario_id: str
+    target_module: str | None
+    triggered_at_tick: int
+    state_changes: list[StateChange]
+    impact_summary: list[str]
+
+
+class ScenarioClearRequest(BaseModel):
+    """Input to POST /scenario/clear."""
+
+    scenario_id: str
+
+
+class ScenarioClearResponse(BaseModel):
+    """Result of POST /scenario/clear."""
+
+    scenario_id: str
+    cleared_at_tick: int
+    state_changes: list[StateChange]
+    note: str
 
 
 

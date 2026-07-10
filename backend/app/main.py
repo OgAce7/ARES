@@ -16,7 +16,7 @@ file — this is the state + tick + sustainability + prediction +
 allocation foundation those future modules will build on.
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.models import (
@@ -24,12 +24,18 @@ from app.models import (
     HabitatState,
     OptimizationPlan,
     PredictionResponse,
+    ScenarioClearRequest,
+    ScenarioClearResponse,
+    ScenarioInfo,
+    ScenarioTriggerRequest,
+    ScenarioTriggerResponse,
     SustainabilityResponse,
     TickRequest,
     TickResponse,
 )
 from app.optimization import apply_plan, generate_plan
 from app.prediction import compute_prediction
+from app.scenario import clear_scenario, list_scenarios, trigger_scenario
 from app.simulation import run_tick
 from app.state import habitat_state, reset_state
 from app.sustainability import compute_sustainability_index
@@ -112,3 +118,52 @@ def optimize_apply(request: ApplyOptimizationRequest | None = None) -> Optimizat
     """
     plan = request.plan if request and request.plan else generate_plan(habitat_state)
     return apply_plan(habitat_state, plan)
+
+
+@app.get("/scenarios", response_model=list[ScenarioInfo])
+def scenarios() -> list[ScenarioInfo]:
+    """Metadata for the three available emergency scenarios."""
+    return list_scenarios()
+
+
+@app.post("/scenario/trigger", response_model=ScenarioTriggerResponse)
+def scenario_trigger(request: ScenarioTriggerRequest) -> ScenarioTriggerResponse:
+    """
+    Trigger one of the three controlled emergency scenarios. Mutates
+    explicit state fields in place; existing simulation, prediction, and
+    sustainability logic will react to the changed state on their own.
+    """
+    try:
+        resolved_target, state_changes, impact_summary = trigger_scenario(
+            habitat_state, request.scenario_id, request.target_module
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return ScenarioTriggerResponse(
+        scenario_id=request.scenario_id,
+        target_module=resolved_target,
+        triggered_at_tick=habitat_state.simulation.tick_count,
+        state_changes=state_changes,
+        impact_summary=impact_summary,
+    )
+
+
+@app.post("/scenario/clear", response_model=ScenarioClearResponse)
+def scenario_clear(request: ScenarioClearRequest) -> ScenarioClearResponse:
+    """
+    Restore the state fields modified by a previously-triggered scenario
+    back to their pre-scenario values, without resetting the rest of the
+    habitat.
+    """
+    try:
+        state_changes = clear_scenario(habitat_state, request.scenario_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return ScenarioClearResponse(
+        scenario_id=request.scenario_id,
+        cleared_at_tick=habitat_state.simulation.tick_count,
+        state_changes=state_changes,
+        note=f"Scenario '{request.scenario_id}' cleared; affected fields restored to their pre-scenario values.",
+    )
