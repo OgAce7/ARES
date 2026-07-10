@@ -1,10 +1,10 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import * as Icons from 'lucide-react';
-import { X, Users } from 'lucide-react';
+import { X, Users, Landmark } from 'lucide-react';
 import { STATUS_META } from '../../data/worldConfig';
 import './BuildingInfoPanel.css';
 
-export default function BuildingInfoPanel({ building, moduleStatus, onClose }) {
+export default function BuildingInfoPanel({ building, moduleStatus, onClose, onOpenCouncil }) {
   return (
     <AnimatePresence>
       {building && (
@@ -15,16 +15,22 @@ export default function BuildingInfoPanel({ building, moduleStatus, onClose }) {
           exit={{ opacity: 0, x: 24, scale: 0.97 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
         >
-          <PanelContent building={building} moduleStatus={moduleStatus} onClose={onClose} />
+          <PanelContent
+            building={building}
+            moduleStatus={moduleStatus}
+            onClose={onClose}
+            onOpenCouncil={onOpenCouncil}
+          />
         </motion.div>
       )}
     </AnimatePresence>
   );
 }
 
-function PanelContent({ building, moduleStatus, onClose }) {
+function PanelContent({ building, moduleStatus, onClose, onOpenCouncil }) {
   const Icon = Icons[building.icon] || Icons.Building2;
   const statusMeta = STATUS_META[moduleStatus?.status] || STATUS_META.stable;
+  const isCouncil = building.id === 'council';
 
   return (
     <>
@@ -66,6 +72,17 @@ function PanelContent({ building, moduleStatus, onClose }) {
             </div>
           ))}
         </div>
+      )}
+
+      {isCouncil && (
+        <button
+          type="button"
+          className="ares-info-panel-council-cta"
+          onClick={onOpenCouncil}
+        >
+          <Landmark size={14} strokeWidth={2.2} />
+          Enter Council Chamber
+        </button>
       )}
     </>
   );

@@ -131,6 +131,17 @@ export function useHabitatData() {
     }
   }, [applyState, isMock]);
 
+  // Lightweight refresh used after POST /optimize/apply: re-pulls /state
+  // (+ sustainability/prediction) and re-runs applyState, but — unlike
+  // loadAll() — never toggles the whole-page LOADING/ERROR banners, so a
+  // council reallocation doesn't flash the entire HUD while its own
+  // panel is already showing success/error feedback.
+  const refreshState = useCallback(async () => {
+    if (isMock) return;
+    const habitatState = await aresApi.getState();
+    await applyState(habitatState);
+  }, [applyState, isMock]);
+
   return {
     status,
     errorMessage,
@@ -142,5 +153,6 @@ export function useHabitatData() {
     isTicking,
     runTick,
     retry: loadAll,
+    refreshState,
   };
 }

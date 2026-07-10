@@ -237,6 +237,3 @@ class ScenarioClearResponse(BaseModel):
     cleared_at_tick: int
     state_changes: list[StateChange]
     note: str
-
-
-

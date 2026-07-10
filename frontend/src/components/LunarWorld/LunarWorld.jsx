@@ -8,6 +8,7 @@ import Astronaut from '../Astronaut/Astronaut';
 import ResourceHUD from '../ResourceHUD/ResourceHUD';
 import SustainabilityBadge from '../SustainabilityBadge/SustainabilityBadge';
 import BuildingInfoPanel from '../BuildingInfoPanel/BuildingInfoPanel';
+import CouncilPanel from '../CouncilPanel/CouncilPanel';
 import './LunarWorld.css';
 
 // LunarWorld is the visual shell of Mission Control: a 2.5D lunar colony
@@ -19,6 +20,7 @@ import './LunarWorld.css';
 export default function LunarWorld() {
   const [selectedId, setSelectedId] = useState(null);
   const [hoveredId, setHoveredId] = useState(null);
+  const [isCouncilOpen, setIsCouncilOpen] = useState(false);
 
   const {
     status,
@@ -31,6 +33,7 @@ export default function LunarWorld() {
     isTicking,
     runTick,
     retry,
+    refreshState,
   } = useHabitatData();
 
   const selectedBuilding = useMemo(
@@ -147,8 +150,15 @@ export default function LunarWorld() {
           building={selectedBuilding}
           moduleStatus={selectedId ? moduleStatus[selectedId] : null}
           onClose={() => setSelectedId(null)}
+          onOpenCouncil={() => setIsCouncilOpen(true)}
         />
       </div>
+
+      <CouncilPanel
+        open={isCouncilOpen}
+        onClose={() => setIsCouncilOpen(false)}
+        onApplied={refreshState}
+      />
     </div>
   );
 }

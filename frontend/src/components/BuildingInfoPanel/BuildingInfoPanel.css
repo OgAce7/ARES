@@ -118,6 +118,34 @@
   font-weight: 600;
 }
 
+.ares-info-panel-council-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 9px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ares-text-h);
+  background: linear-gradient(135deg, rgba(185, 140, 255, 0.22), rgba(111, 215, 255, 0.14));
+  border: 1px solid var(--ares-accent-2);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.ares-info-panel-council-cta:hover {
+  background: linear-gradient(135deg, rgba(185, 140, 255, 0.32), rgba(111, 215, 255, 0.2));
+  box-shadow: 0 0 16px rgba(185, 140, 255, 0.35);
+}
+
+.ares-info-panel-council-cta:active {
+  transform: scale(0.98);
+}
+
 @media (max-width: 560px) {
   .ares-info-panel {
     left: 12px;

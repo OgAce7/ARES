@@ -67,4 +67,6 @@ export const aresApi = {
   tick: (simulatedHours = 1) => request('/tick', { method: 'POST', body: { simulated_hours: simulatedHours } }),
   getSustainability: () => request('/sustainability'),
   getPrediction: () => request('/prediction'),
+  optimizePreview: () => request('/optimize/preview', { method: 'POST' }),
+  optimizeApply: (plan = null) => request('/optimize/apply', { method: 'POST', body: { plan } }),
 };
