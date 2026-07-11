@@ -145,12 +145,18 @@ export const BUILDINGS = [
   },
 ];
 
-// Astronaut placeholders wandering the colony grounds.
-export const ASTRONAUTS = [
-  { id: 'astro-1', position: { x: 40, y: 72 }, driftDelay: 0 },
-  { id: 'astro-2', position: { x: 60, y: 74 }, driftDelay: 0.8 },
-  { id: 'astro-3', position: { x: 30, y: 58 }, driftDelay: 1.6 },
-  { id: 'astro-4', position: { x: 70, y: 60 }, driftDelay: 2.4 },
+// Fixed fan-out offsets (percentage points, relative to the occupied
+// building's anchor point) applied when multiple astronauts share a
+// module, so they don't render exactly on top of one another. This is
+// static layout data, cycled by index within the module — not
+// pathfinding or free-form placement, just a handful of predefined
+// nearby spots around each building anchor.
+export const CREW_ANCHOR_OFFSETS = [
+  { dx: 0, dy: 4 },
+  { dx: -5, dy: 6 },
+  { dx: 5, dy: 6 },
+  { dx: -3, dy: 9 },
+  { dx: 3, dy: 9 },
 ];
 
 // Ambient glow accent points scattered around the colony to sell the

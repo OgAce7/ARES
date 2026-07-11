@@ -77,4 +77,9 @@ export const aresApi = {
     }),
   clearScenario: (scenarioId) =>
     request('/scenario/clear', { method: 'POST', body: { scenario_id: scenarioId } }),
+  moveAstronaut: (astronautId, targetModule) =>
+    request(`/astronauts/${astronautId}/move`, {
+      method: 'POST',
+      body: { target_module: targetModule },
+    }),
 };

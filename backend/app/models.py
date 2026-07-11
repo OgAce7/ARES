@@ -60,6 +60,12 @@ class Astronaut(BaseModel):
     activity_multiplier: float  # scales demand based on current activity level
 
 
+class MoveAstronautRequest(BaseModel):
+    """Input to POST /astronauts/{id}/move."""
+
+    target_module: str
+
+
 class SimulationMeta(BaseModel):
     """Bookkeeping for the simulation clock."""
 

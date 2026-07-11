@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { BUILDINGS, ASTRONAUTS, AMBIENT_LIGHTS, CRATERS } from '../../data/worldConfig';
+import { BUILDINGS, AMBIENT_LIGHTS, CRATERS, CREW_ANCHOR_OFFSETS } from '../../data/worldConfig';
+import { FRONTEND_TO_BACKEND_ID } from '../../services/adapters';
 import { useHabitatData, LOAD_STATUS } from '../../hooks/useHabitatData';
 import Starfield from '../Starfield/Starfield';
 import Earth from '../Earth/Earth';
@@ -8,9 +9,15 @@ import Astronaut from '../Astronaut/Astronaut';
 import ResourceHUD from '../ResourceHUD/ResourceHUD';
 import SustainabilityBadge from '../SustainabilityBadge/SustainabilityBadge';
 import BuildingInfoPanel from '../BuildingInfoPanel/BuildingInfoPanel';
+import AstronautProfileCard from '../AstronautProfileCard/AstronautProfileCard';
 import CouncilPanel from '../CouncilPanel/CouncilPanel';
 import EventSimulator from '../EventSimulator/EventSimulator';
 import './LunarWorld.css';
+
+// Fixed building anchor points, keyed by frontend building id — the only
+// valid places an astronaut can be rendered. No free-form coordinates.
+const BUILDING_POSITION_BY_ID = Object.fromEntries(BUILDINGS.map((b) => [b.id, b.position]));
+const BUILDING_IDS = new Set(BUILDINGS.map((b) => b.id));
 
 // Maps each active scenario to the single building visual-reaction effect
 // it drives, and which building that effect lands on. habitat_breach's
@@ -31,16 +38,37 @@ function buildScenarioEffects(activeScenarios) {
   return effects;
 }
 
+// Resolves each astronaut's screen position from its live
+// current_location. Astronauts sharing a module fan out across a
+// predefined set of fixed offsets (CREW_ANCHOR_OFFSETS) around that
+// building's anchor point so they don't stack exactly on top of one
+// another — still no free-form placement, just a handful of fixed spots.
+function resolveAstronautPositions(astronauts) {
+  const countByLocation = {};
+  const positions = {};
+  for (const astronaut of astronauts) {
+    const idx = countByLocation[astronaut.locationId] ?? 0;
+    countByLocation[astronaut.locationId] = idx + 1;
+    const anchor = BUILDING_POSITION_BY_ID[astronaut.locationId] ?? BUILDING_POSITION_BY_ID.council;
+    const offset = CREW_ANCHOR_OFFSETS[idx % CREW_ANCHOR_OFFSETS.length];
+    positions[astronaut.id] = { x: anchor.x + offset.dx, y: anchor.y + offset.dy };
+  }
+  return positions;
+}
+
 // LunarWorld is the visual shell of Mission Control: a 2.5D lunar colony
 // built entirely from layered CSS/SVG + Framer Motion. Resource/sustainability/
-// module data is live, sourced from the ARES FastAPI backend via
+// module/crew data is live, sourced from the ARES FastAPI backend via
 // useHabitatData() (see hooks/useHabitatData.js). Selection/hover remain
-// local UI state. Simulation time only advances when the user explicitly
-// requests it (POST /tick) — there is no background polling.
+// local UI state and are shared between buildings and astronauts (their id
+// spaces never collide), so only one info panel is ever open at a time.
+// Simulation time only advances when the user explicitly requests it
+// (POST /tick) — there is no background polling.
 export default function LunarWorld() {
   const [selectedId, setSelectedId] = useState(null);
   const [hoveredId, setHoveredId] = useState(null);
   const [isCouncilOpen, setIsCouncilOpen] = useState(false);
+  const [moveError, setMoveError] = useState(null);
 
   const {
     status,
@@ -50,11 +78,14 @@ export default function LunarWorld() {
     sustainability,
     moduleStatus,
     activeScenarios,
+    astronauts,
     tickCount,
     isTicking,
     runTick,
     retry,
     refreshState,
+    moveAstronaut,
+    movingAstronautId,
   } = useHabitatData();
 
   const selectedBuilding = useMemo(
@@ -62,10 +93,26 @@ export default function LunarWorld() {
     [selectedId]
   );
 
+  const displayedAstronaut = useMemo(() => {
+    const selected = astronauts.find((a) => a.id === selectedId);
+    if (selected) return selected;
+    return astronauts.find((a) => a.id === hoveredId) || null;
+  }, [astronauts, selectedId, hoveredId]);
+
+  const astronautPositions = useMemo(() => resolveAstronautPositions(astronauts), [astronauts]);
+
   const scenarioEffects = useMemo(() => buildScenarioEffects(activeScenarios), [activeScenarios]);
 
   const handleSelect = (id) => {
+    setMoveError(null);
     setSelectedId((current) => (current === id ? null : id));
+  };
+
+  const handleMoveAstronaut = async (astronautId, targetFrontendId) => {
+    setMoveError(null);
+    const targetBackendId = FRONTEND_TO_BACKEND_ID[targetFrontendId] ?? targetFrontendId;
+    const result = await moveAstronaut(astronautId, targetBackendId);
+    if (!result.ok) setMoveError(result.error);
   };
 
   return (
@@ -118,9 +165,22 @@ export default function LunarWorld() {
           />
         ))}
 
-        {ASTRONAUTS.map((astronaut) => (
-          <Astronaut key={astronaut.id} astronaut={astronaut} />
-        ))}
+        {astronauts.map((astronaut, index) => {
+          const pos = astronautPositions[astronaut.id] ?? BUILDING_POSITION_BY_ID.council;
+          return (
+            <Astronaut
+              key={astronaut.id}
+              astronaut={astronaut}
+              x={pos.x}
+              y={pos.y}
+              driftDelay={(index % 5) * 0.6}
+              isActive={selectedId === astronaut.id || hoveredId === astronaut.id}
+              isMoving={movingAstronautId === astronaut.id}
+              onSelect={handleSelect}
+              onHover={setHoveredId}
+            />
+          );
+        })}
       </div>
 
       {/* ── HUD overlay layer ────────────────────────────────────── */}
@@ -170,7 +230,7 @@ export default function LunarWorld() {
           </div>
         )}
 
-        {hoveredId && !selectedId && (
+        {hoveredId && !selectedId && BUILDING_IDS.has(hoveredId) && (
           <div className="ares-hud-hint">
             Click {BUILDINGS.find((b) => b.id === hoveredId)?.name} to view details
           </div>
@@ -181,6 +241,18 @@ export default function LunarWorld() {
           moduleStatus={selectedId ? moduleStatus[selectedId] : null}
           onClose={() => setSelectedId(null)}
           onOpenCouncil={() => setIsCouncilOpen(true)}
+        />
+
+        <AstronautProfileCard
+          astronaut={displayedAstronaut}
+          isMoving={displayedAstronaut ? movingAstronautId === displayedAstronaut.id : false}
+          moveError={moveError}
+          onMove={handleMoveAstronaut}
+          onClose={() => {
+            setSelectedId(null);
+            setHoveredId(null);
+            setMoveError(null);
+          }}
         />
       </div>
 

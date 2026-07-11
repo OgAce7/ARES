@@ -7,7 +7,9 @@
 // backend" stays a data-layer concern, not a component rewrite.
 // ─────────────────────────────────────────────────────────────────────────
 
-import { STATUS } from '../data/worldConfig';
+import { STATUS, BUILDINGS } from '../data/worldConfig';
+
+const BUILDING_NAME_BY_FRONTEND_ID = Object.fromEntries(BUILDINGS.map((b) => [b.id, b.name]));
 
 // worldConfig.js / mockData.js key buildings with hyphens ('habitat-alpha');
 // the backend keys modules with underscores ('habitat_alpha'). This is the
@@ -23,6 +25,12 @@ export const BACKEND_TO_FRONTEND_ID = {
   water_recycler: 'water-recycler',
   solar_farm: 'solar-farm',
 };
+
+// Reverse of the above, for the one place the frontend needs to send a
+// module id back to the backend (POST /astronauts/{id}/move target_module).
+export const FRONTEND_TO_BACKEND_ID = Object.fromEntries(
+  Object.entries(BACKEND_TO_FRONTEND_ID).map(([backendId, frontendId]) => [frontendId, backendId])
+);
 
 // Backend module.status can be "nominal" | "degraded" | "critical" | "stable" | "warning".
 // The frontend's STATUS_META only knows stable/warning/critical, so fold the
@@ -177,4 +185,29 @@ export function adaptActiveScenarios(activeScenarios) {
     };
   }
   return adapted;
+}
+
+/**
+ * Build the crew list the world stage / profile card need from live
+ * HabitatState.astronauts: raw backend demand figures plus the
+ * frontend (hyphenated) module id + human-readable module name for
+ * whichever module the astronaut currently occupies. Screen position is
+ * NOT computed here — that's structural/visual layout data and stays
+ * with the building anchor points in worldConfig.js, resolved by the
+ * component that renders the astronaut.
+ */
+export function adaptAstronauts(astronauts) {
+  return (astronauts ?? []).map((astronaut) => {
+    const locationId = BACKEND_TO_FRONTEND_ID[astronaut.current_location] ?? astronaut.current_location;
+    return {
+      id: astronaut.id,
+      name: astronaut.name,
+      role: astronaut.role,
+      locationId,
+      locationName: BUILDING_NAME_BY_FRONTEND_ID[locationId] ?? astronaut.current_location,
+      oxygenDemandPerHour: astronaut.oxygen_demand_per_hour,
+      waterDemandPerDay: astronaut.water_demand_per_day,
+      activityMultiplier: astronaut.activity_multiplier,
+    };
+  });
 }

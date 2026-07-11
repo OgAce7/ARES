@@ -5,6 +5,7 @@ Exposes:
   GET  /health             - liveness check
   GET  /state              - current in-memory habitat state
   POST /reset               - reset habitat state to seed values
+  POST /astronauts/{id}/move - relocate an astronaut to a different module
   POST /tick                 - advance the simulation by N simulated hours (default 1)
   GET  /sustainability     - Habitat Sustainability Index (0-100) for current state
   GET  /prediction          - emergency shortage prediction per resource
@@ -22,6 +23,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.models import (
     ApplyOptimizationRequest,
     HabitatState,
+    MoveAstronautRequest,
     OptimizationPlan,
     PredictionResponse,
     ScenarioClearRequest,
@@ -72,6 +74,31 @@ def get_state() -> HabitatState:
 @app.post("/reset", response_model=HabitatState)
 def reset() -> HabitatState:
     return reset_state()
+
+
+@app.post("/astronauts/{astronaut_id}/move", response_model=HabitatState)
+def move_astronaut(astronaut_id: str, request: MoveAstronautRequest) -> HabitatState:
+    """
+    Relocate a single astronaut to a different habitat module.
+
+    This only updates `Astronaut.current_location`. It does not move any
+    resources itself — the next POST /tick naturally reflects the change,
+    since `run_tick`'s occupancy-load calculation reads each astronaut's
+    current_location fresh every tick (see simulation.py::_occupancy_loads).
+    """
+    astronaut = next((a for a in habitat_state.astronauts if a.id == astronaut_id), None)
+    if astronaut is None:
+        raise HTTPException(status_code=404, detail=f"Astronaut '{astronaut_id}' not found")
+
+    if request.target_module not in habitat_state.modules:
+        valid = ", ".join(sorted(habitat_state.modules))
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown target module '{request.target_module}'. Valid modules: {valid}",
+        )
+
+    astronaut.current_location = request.target_module
+    return habitat_state
 
 
 @app.post("/tick", response_model=TickResponse)

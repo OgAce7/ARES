@@ -23,7 +23,13 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { aresApi } from '../services/aresApi';
-import { adaptResources, adaptSustainability, adaptModuleStatus, adaptActiveScenarios } from '../services/adapters';
+import {
+  adaptResources,
+  adaptSustainability,
+  adaptModuleStatus,
+  adaptActiveScenarios,
+  adaptAstronauts,
+} from '../services/adapters';
 import { RESOURCES as MOCK_RESOURCES, SUSTAINABILITY as MOCK_SUSTAINABILITY, MODULE_STATUS as MOCK_MODULE_STATUS } from '../data/mockData';
 
 const MOCK_FALLBACK_ENABLED = import.meta.env.VITE_ARES_MOCK_FALLBACK === 'true';
@@ -42,8 +48,10 @@ export function useHabitatData() {
   const [sustainability, setSustainability] = useState(MOCK_SUSTAINABILITY);
   const [moduleStatus, setModuleStatus] = useState(MOCK_MODULE_STATUS);
   const [activeScenarios, setActiveScenarios] = useState({});
+  const [astronauts, setAstronauts] = useState([]);
   const [tickCount, setTickCount] = useState(0);
   const [isTicking, setIsTicking] = useState(false);
+  const [movingAstronautId, setMovingAstronautId] = useState(null);
 
   const previousScoreRef = useRef(null);
   const mountedRef = useRef(true);
@@ -78,6 +86,7 @@ export function useHabitatData() {
     setResources(adaptResources(habitatState.resources, predictionData));
     setModuleStatus(adaptModuleStatus(habitatState.modules, habitatState.astronauts, habitatState.active_scenarios));
     setActiveScenarios(adaptActiveScenarios(habitatState.active_scenarios));
+    setAstronauts(adaptAstronauts(habitatState.astronauts));
     setTickCount(habitatState.simulation.tick_count);
     if (sustainabilityData) {
       setSustainability(adaptSustainability(sustainabilityData, previousScoreRef.current));
@@ -133,6 +142,25 @@ export function useHabitatData() {
     }
   }, [applyState, isMock]);
 
+  // Relocates a single astronaut via POST /astronauts/{id}/move, then
+  // re-applies the returned state so resources/moduleStatus/astronauts all
+  // stay in sync (occupancy load only actually shifts on the next tick —
+  // see simulation.py — but the astronaut's own current_location, and
+  // therefore its rendered position, updates immediately).
+  const moveAstronaut = useCallback(async (astronautId, targetModuleBackendId) => {
+    if (isMock) return { ok: false, error: 'Unavailable while running on mock data.' };
+    setMovingAstronautId(astronautId);
+    try {
+      const updatedState = await aresApi.moveAstronaut(astronautId, targetModuleBackendId);
+      await applyState(updatedState);
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: err.message };
+    } finally {
+      if (mountedRef.current) setMovingAstronautId(null);
+    }
+  }, [applyState, isMock]);
+
   // Lightweight refresh used after POST /optimize/apply: re-pulls /state
   // (+ sustainability/prediction) and re-runs applyState, but — unlike
   // loadAll() — never toggles the whole-page LOADING/ERROR banners, so a
@@ -152,10 +180,13 @@ export function useHabitatData() {
     sustainability,
     moduleStatus,
     activeScenarios,
+    astronauts,
     tickCount,
     isTicking,
     runTick,
     retry: loadAll,
     refreshState,
+    moveAstronaut,
+    movingAstronautId,
   };
 }
