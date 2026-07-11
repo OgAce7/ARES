@@ -52,6 +52,7 @@ export function useHabitatData() {
   const [tickCount, setTickCount] = useState(0);
   const [isTicking, setIsTicking] = useState(false);
   const [movingAstronautId, setMovingAstronautId] = useState(null);
+  const [isResetting, setIsResetting] = useState(false);
 
   const previousScoreRef = useRef(null);
   const mountedRef = useRef(true);
@@ -142,6 +143,32 @@ export function useHabitatData() {
     }
   }, [applyState, isMock]);
 
+  // Wired to the HUD's Reset button: calls POST /reset, then re-applies the
+  // fresh (tick 0, seed-value) state so every panel — resources, modules,
+  // astronaut positions, active scenario indicators — snaps back in sync.
+  // Uses the same status/error banner as loadAll/runTick so a failed reset
+  // is visible rather than silently leaving stale data on screen.
+  const resetHabitat = useCallback(async () => {
+    if (isMock) return;
+    setIsResetting(true);
+    try {
+      const habitatState = await aresApi.resetState();
+      previousScoreRef.current = null;
+      await applyState(habitatState);
+      if (mountedRef.current) {
+        setStatus(LOAD_STATUS.READY);
+        setErrorMessage(null);
+      }
+    } catch (err) {
+      if (mountedRef.current) {
+        setStatus(LOAD_STATUS.ERROR);
+        setErrorMessage(err.message);
+      }
+    } finally {
+      if (mountedRef.current) setIsResetting(false);
+    }
+  }, [applyState, isMock]);
+
   // Relocates a single astronaut via POST /astronauts/{id}/move, then
   // re-applies the returned state so resources/moduleStatus/astronauts all
   // stay in sync (occupancy load only actually shifts on the next tick —
@@ -188,5 +215,7 @@ export function useHabitatData() {
     refreshState,
     moveAstronaut,
     movingAstronautId,
+    resetHabitat,
+    isResetting,
   };
 }

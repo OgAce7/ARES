@@ -212,6 +212,34 @@
   opacity: 0.7;
 }
 
+.ares-reset-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ares-text-dim);
+  background: var(--ares-panel);
+  border: 1px solid var(--ares-panel-border);
+  border-radius: 10px;
+  padding: 6px 12px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.ares-reset-button:hover:not(:disabled) {
+  color: var(--ares-status-warning);
+  border-color: var(--ares-status-warning);
+  background: color-mix(in srgb, var(--ares-status-warning) 12%, var(--ares-panel));
+}
+
+.ares-reset-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 .ares-mock-badge {
   display: flex;
   align-items: center;

@@ -86,6 +86,8 @@ export default function LunarWorld() {
     refreshState,
     moveAstronaut,
     movingAstronautId,
+    resetHabitat,
+    isResetting,
   } = useHabitatData();
 
   const selectedBuilding = useMemo(
@@ -113,6 +115,14 @@ export default function LunarWorld() {
     const targetBackendId = FRONTEND_TO_BACKEND_ID[targetFrontendId] ?? targetFrontendId;
     const result = await moveAstronaut(astronautId, targetBackendId);
     if (!result.ok) setMoveError(result.error);
+  };
+
+  const handleReset = async () => {
+    setSelectedId(null);
+    setHoveredId(null);
+    setMoveError(null);
+    setIsCouncilOpen(false);
+    await resetHabitat();
   };
 
   return (
@@ -199,11 +209,20 @@ export default function LunarWorld() {
               type="button"
               className="ares-tick-button"
               onClick={() => runTick(1)}
-              disabled={isMock || isTicking || status === LOAD_STATUS.LOADING}
+              disabled={isMock || isTicking || isResetting || status === LOAD_STATUS.LOADING}
               title="Advance the simulation by 1 hour (POST /tick)"
             >
               {isTicking ? 'Advancing…' : `Advance +1h`}
               <span className="ares-tick-count">t={tickCount}</span>
+            </button>
+            <button
+              type="button"
+              className="ares-reset-button"
+              onClick={handleReset}
+              disabled={isMock || isResetting || isTicking || status === LOAD_STATUS.LOADING}
+              title="Reset the habitat back to its seed state (POST /reset)"
+            >
+              {isResetting ? 'Resetting…' : 'Reset'}
             </button>
             <EventSimulator
               activeScenarios={activeScenarios}

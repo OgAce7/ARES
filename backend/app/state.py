@@ -182,7 +182,23 @@ habitat_state: HabitatState = build_initial_state()
 
 
 def reset_state() -> HabitatState:
-    """Reset the shared in-memory state back to seed values."""
-    global habitat_state
-    habitat_state = build_initial_state()
+    """
+    Reset the shared in-memory state back to seed values.
+
+    IMPORTANT: this mutates the existing `habitat_state` object's fields
+    in place rather than rebinding the module-level name to a brand new
+    object. `main.py` (and every other module) imports `habitat_state`
+    by value at import time (`from app.state import habitat_state`), so
+    if this function reassigned the global here, those other modules'
+    local references would keep pointing at the stale pre-reset object
+    forever - every endpoint except /reset itself would silently keep
+    operating on old data. Mutating the same object's attributes instead
+    means every existing reference stays valid and sees the reset values.
+    """
+    fresh = build_initial_state()
+    habitat_state.resources = fresh.resources
+    habitat_state.modules = fresh.modules
+    habitat_state.astronauts = fresh.astronauts
+    habitat_state.simulation = fresh.simulation
+    habitat_state.active_scenarios = fresh.active_scenarios
     return habitat_state
