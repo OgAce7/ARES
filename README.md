@@ -84,11 +84,10 @@ ARES
 
 ---
 
-## ⚙️ Setup
+## 🔗 Links
 
-Complete setup and deployment instructions are available in:
-
-**➡️ SETUP.md**
+- 🌐 Live Demo: [Visit here](https://ares-alpha.vercel.app/)
+- 📖 Setup Guide: [SETUP.md](SETUP.md)
 
 ---
 
