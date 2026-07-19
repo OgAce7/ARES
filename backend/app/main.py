@@ -39,7 +39,7 @@ from app.optimization import apply_plan, generate_plan
 from app.prediction import compute_prediction
 from app.scenario import clear_scenario, list_scenarios, trigger_scenario
 from app.simulation import run_tick
-from app.state import habitat_state, reset_state
+from app.state import habitat_state, reset_state, state_lock
 from app.sustainability import compute_sustainability_index
 
 app = FastAPI(
@@ -77,12 +77,14 @@ def health() -> dict:
 
 @app.get("/state", response_model=HabitatState)
 def get_state() -> HabitatState:
-    return habitat_state
+    with state_lock:
+        return habitat_state.model_copy(deep=True)
 
 
 @app.post("/reset", response_model=HabitatState)
 def reset() -> HabitatState:
-    return reset_state()
+    with state_lock:
+        return reset_state().model_copy(deep=True)
 
 
 @app.post("/astronauts/{astronaut_id}/move", response_model=HabitatState)
@@ -95,52 +97,57 @@ def move_astronaut(astronaut_id: str, request: MoveAstronautRequest) -> HabitatS
     since `run_tick`'s occupancy-load calculation reads each astronaut's
     current_location fresh every tick (see simulation.py::_occupancy_loads).
     """
-    astronaut = next((a for a in habitat_state.astronauts if a.id == astronaut_id), None)
-    if astronaut is None:
-        raise HTTPException(status_code=404, detail=f"Astronaut '{astronaut_id}' not found")
+    with state_lock:
+        astronaut = next((a for a in habitat_state.astronauts if a.id == astronaut_id), None)
+        if astronaut is None:
+            raise HTTPException(status_code=404, detail=f"Astronaut '{astronaut_id}' not found")
 
-    if request.target_module not in habitat_state.modules:
-        valid = ", ".join(sorted(habitat_state.modules))
-        raise HTTPException(
-            status_code=400,
-            detail=f"Unknown target module '{request.target_module}'. Valid modules: {valid}",
-        )
+        if request.target_module not in habitat_state.modules:
+            valid = ", ".join(sorted(habitat_state.modules))
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unknown target module '{request.target_module}'. Valid modules: {valid}",
+            )
 
-    astronaut.current_location = request.target_module
-    return habitat_state
+        astronaut.current_location = request.target_module
+        return habitat_state.model_copy(deep=True)
 
 
 @app.post("/tick", response_model=TickResponse)
 def tick(request: TickRequest | None = None) -> TickResponse:
     simulated_hours = request.simulated_hours if request else 1.0
-    updated_state, resource_deltas, status_changes = run_tick(habitat_state, simulated_hours)
-    return TickResponse(
-        state=updated_state,
-        resource_deltas=resource_deltas,
-        status_changes=status_changes,
-    )
+    with state_lock:
+        updated_state, resource_deltas, status_changes = run_tick(habitat_state, simulated_hours)
+        return TickResponse(
+            state=updated_state.model_copy(deep=True),
+            resource_deltas=resource_deltas,
+            status_changes=status_changes,
+        )
 
 
 @app.get("/sustainability", response_model=SustainabilityResponse)
 def sustainability() -> SustainabilityResponse:
-    overall_score, classification, component_scores, key_factors = compute_sustainability_index(habitat_state)
-    return SustainabilityResponse(
-        overall_score=overall_score,
-        classification=classification,
-        component_scores=component_scores,
-        key_factors=key_factors,
-    )
+    with state_lock:
+        overall_score, classification, component_scores, key_factors = compute_sustainability_index(habitat_state)
+        return SustainabilityResponse(
+            overall_score=overall_score,
+            classification=classification,
+            component_scores=component_scores,
+            key_factors=key_factors,
+        )
 
 
 @app.get("/prediction", response_model=PredictionResponse)
 def prediction() -> PredictionResponse:
-    return compute_prediction(habitat_state)
+    with state_lock:
+        return compute_prediction(habitat_state)
 
 
 @app.post("/optimize/preview", response_model=OptimizationPlan)
 def optimize_preview() -> OptimizationPlan:
     """Compute a reallocation plan without mutating state."""
-    return generate_plan(habitat_state)
+    with state_lock:
+        return generate_plan(habitat_state)
 
 
 @app.post("/optimize/apply", response_model=OptimizationPlan)
@@ -152,8 +159,9 @@ def optimize_apply(request: ApplyOptimizationRequest | None = None) -> Optimizat
     allocations). Otherwise a fresh plan is computed from current state
     and applied immediately.
     """
-    plan = request.plan if request and request.plan else generate_plan(habitat_state)
-    return apply_plan(habitat_state, plan)
+    with state_lock:
+        plan = request.plan if request and request.plan else generate_plan(habitat_state)
+        return apply_plan(habitat_state, plan)
 
 
 @app.get("/scenarios", response_model=list[ScenarioInfo])
@@ -169,20 +177,21 @@ def scenario_trigger(request: ScenarioTriggerRequest) -> ScenarioTriggerResponse
     explicit state fields in place; existing simulation, prediction, and
     sustainability logic will react to the changed state on their own.
     """
-    try:
-        resolved_target, state_changes, impact_summary = trigger_scenario(
-            habitat_state, request.scenario_id, request.target_module
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    with state_lock:
+        try:
+            resolved_target, state_changes, impact_summary = trigger_scenario(
+                habitat_state, request.scenario_id, request.target_module
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    return ScenarioTriggerResponse(
-        scenario_id=request.scenario_id,
-        target_module=resolved_target,
-        triggered_at_tick=habitat_state.simulation.tick_count,
-        state_changes=state_changes,
-        impact_summary=impact_summary,
-    )
+        return ScenarioTriggerResponse(
+            scenario_id=request.scenario_id,
+            target_module=resolved_target,
+            triggered_at_tick=habitat_state.simulation.tick_count,
+            state_changes=state_changes,
+            impact_summary=impact_summary,
+        )
 
 
 @app.post("/scenario/clear", response_model=ScenarioClearResponse)
@@ -192,14 +201,15 @@ def scenario_clear(request: ScenarioClearRequest) -> ScenarioClearResponse:
     back to their pre-scenario values, without resetting the rest of the
     habitat.
     """
-    try:
-        state_changes = clear_scenario(habitat_state, request.scenario_id)
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    with state_lock:
+        try:
+            state_changes = clear_scenario(habitat_state, request.scenario_id)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    return ScenarioClearResponse(
-        scenario_id=request.scenario_id,
-        cleared_at_tick=habitat_state.simulation.tick_count,
-        state_changes=state_changes,
-        note=f"Scenario '{request.scenario_id}' cleared; affected fields restored to their pre-scenario values.",
-    )
+        return ScenarioClearResponse(
+            scenario_id=request.scenario_id,
+            cleared_at_tick=habitat_state.simulation.tick_count,
+            state_changes=state_changes,
+            note=f"Scenario '{request.scenario_id}' cleared; affected fields restored to their pre-scenario values.",
+        )
