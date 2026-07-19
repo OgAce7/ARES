@@ -284,6 +284,24 @@ def _trigger_habitat_breach(
     return numeric_baseline, status_baseline, changes, impact_summary, resolved_target
 
 
+def _status_target_module(
+    state: HabitatState, scenario_id: str, target_module: str | None
+) -> str | None:
+    """
+    The single module id (if any) that `scenario_id` would apply an
+    explicit `status` override to, without actually mutating anything.
+    Returns None if the scenario doesn't touch module status, or if its
+    target module isn't a real module (that case is reported by the
+    scenario's own trigger function with a clearer error).
+    """
+    if scenario_id == "water_recycler_failure":
+        return "water_recycler" if "water_recycler" in state.modules else None
+    if scenario_id == "habitat_breach":
+        candidate = target_module or DEFAULT_BREACH_MODULE
+        return candidate if candidate in state.modules else None
+    return None  # solar_flare never sets an explicit module status
+
+
 def trigger_scenario(
     state: HabitatState, scenario_id: str, target_module: str | None = None
 ):
@@ -291,12 +309,30 @@ def trigger_scenario(
     Trigger `scenario_id` against the live `state`, mutating it in place.
     Returns (target_module_used, state_changes, impact_summary).
     Raises ValueError for an unknown scenario_id, an already-active
-    scenario, or (for habitat_breach) an unknown target_module.
+    scenario, (for habitat_breach) an unknown target_module, or a target
+    module whose `status` is already overridden by another active scenario.
     """
     if scenario_id not in SCENARIO_CATALOG:
         raise ValueError(f"unknown scenario_id '{scenario_id}'")
     if scenario_id in state.active_scenarios:
         raise ValueError(f"scenario '{scenario_id}' is already active; clear it before re-triggering")
+
+    # Two active scenarios must never both hold an explicit status
+    # override on the same module (e.g. habitat_breach targeting
+    # 'water_recycler' while water_recycler_failure is already active):
+    # the second scenario to trigger would snapshot the FIRST scenario's
+    # already-modified status as its own "pre-scenario baseline", so
+    # clearing them later could restore the wrong value or leave the
+    # module stuck at the wrong status. Reject the trigger instead.
+    status_target = _status_target_module(state, scenario_id, target_module)
+    if status_target is not None:
+        for other_id, other_active in state.active_scenarios.items():
+            if status_target in other_active.status_baseline:
+                raise ValueError(
+                    f"module '{status_target}' already has an active emergency status "
+                    f"override from scenario '{other_id}'; clear it before triggering "
+                    f"'{scenario_id}' against the same module"
+                )
 
     resolved_target = target_module
 
