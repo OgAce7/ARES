@@ -9,31 +9,39 @@ from pydantic import BaseModel, Field
 
 
 class Resource(BaseModel):
-    """A single global resource pool (oxygen, water, or energy)."""
+    """A single global resource pool (oxygen, water, or energy).
+
+    Note: these Field bounds are validated on construction (e.g. seed
+    data, or a future request body) but NOT on later in-place mutation
+    via plain attribute assignment (e.g. `resource.current_level = x`),
+    since Pydantic v2 only validates on assignment if explicitly
+    configured to. simulation.py and scenario.py rely on that existing,
+    unvalidated-assignment behavior to keep working unchanged.
+    """
 
     name: str
     unit: str
-    current_level: float
-    max_capacity: float
-    critical_threshold: float  # below this level, the resource is in a critical state
-    generation_rate: float  # amount produced per simulated hour
-    base_consumption_rate: float  # baseline amount consumed per simulated hour
+    current_level: float = Field(ge=0, description="Must be non-negative.")
+    max_capacity: float = Field(gt=0, description="Must be positive; a zero-capacity resource is meaningless.")
+    critical_threshold: float = Field(ge=0)  # below this level, the resource is in a critical state
+    generation_rate: float = Field(ge=0)  # amount produced per simulated hour
+    base_consumption_rate: float = Field(ge=0)  # baseline amount consumed per simulated hour
 
 
 class ModuleResourceDemand(BaseModel):
     """How much of each resource a module demands, at full (100%) allocation."""
 
-    oxygen: float
-    water: float
-    energy: float
+    oxygen: float = Field(ge=0)
+    water: float = Field(ge=0)
+    energy: float = Field(ge=0)
 
 
 class ModuleAllocation(BaseModel):
     """Current vs. minimum-safe allocation percentages (0-100) per resource."""
 
-    oxygen: float
-    water: float
-    energy: float
+    oxygen: float = Field(ge=0, le=100)
+    water: float = Field(ge=0, le=100)
+    energy: float = Field(ge=0, le=100)
 
 
 class HabitatModule(BaseModel):
@@ -44,7 +52,9 @@ class HabitatModule(BaseModel):
     resource_demand: ModuleResourceDemand
     current_allocation: ModuleAllocation
     minimum_safe_allocation: ModuleAllocation
-    criticality_weight: float  # relative importance when future optimization logic arbitrates tradeoffs
+    criticality_weight: float = Field(
+        ge=0, le=1, description="Relative importance (0-1) when optimization logic arbitrates tradeoffs."
+    )
     status: str  # e.g. "nominal", "degraded", "critical", "offline"
 
 
@@ -54,16 +64,16 @@ class Astronaut(BaseModel):
     id: str
     name: str
     role: str
-    current_location: str  # module id where the astronaut currently is
-    oxygen_demand_per_hour: float
-    water_demand_per_day: float
-    activity_multiplier: float  # scales demand based on current activity level
+    current_location: str = Field(min_length=1)  # module id where the astronaut currently is
+    oxygen_demand_per_hour: float = Field(ge=0)
+    water_demand_per_day: float = Field(ge=0)
+    activity_multiplier: float = Field(gt=0)  # scales demand based on current activity level
 
 
 class MoveAstronautRequest(BaseModel):
     """Input to POST /astronauts/{id}/move."""
 
-    target_module: str
+    target_module: str = Field(min_length=1, description="Target module id; must be non-empty.")
 
 
 class SimulationMeta(BaseModel):
@@ -216,8 +226,8 @@ class StateChange(BaseModel):
 class ScenarioTriggerRequest(BaseModel):
     """Input to POST /scenario/trigger."""
 
-    scenario_id: str
-    target_module: str | None = None
+    scenario_id: str = Field(min_length=1)
+    target_module: str | None = Field(default=None, min_length=1)
 
 
 class ScenarioTriggerResponse(BaseModel):
@@ -233,7 +243,7 @@ class ScenarioTriggerResponse(BaseModel):
 class ScenarioClearRequest(BaseModel):
     """Input to POST /scenario/clear."""
 
-    scenario_id: str
+    scenario_id: str = Field(min_length=1)
 
 
 class ScenarioClearResponse(BaseModel):
