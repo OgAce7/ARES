@@ -22,8 +22,7 @@ from app.simulation import (
     _facility_generation_bonus,
     _module_demand_totals,
 )
-
-RESOURCE_NAMES = ("oxygen", "water", "energy")
+from app.utils import RESOURCE_NAMES
 
 # --- Configurable risk horizons (simulated hours until crossing critical_threshold) ---
 CRITICAL_HORIZON_HOURS = 12.0
@@ -108,7 +107,10 @@ def _predict_resource(state: HabitatState, name: str) -> ResourcePrediction:
     net_rate = _net_rate(breakdown)
 
     hours_to_critical: float | None = None
-    if net_rate < 0:
+    # net_rate != 0 additionally guards against the -0.0 edge case, where
+    # `net_rate < 0` is true but abs(net_rate) is 0.0, which would raise
+    # ZeroDivisionError below.
+    if net_rate < 0 and net_rate != 0:
         buffer = r.current_level - r.critical_threshold
         hours_to_critical = max(0.0, buffer) / abs(net_rate)
 
