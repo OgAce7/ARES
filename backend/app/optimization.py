@@ -27,8 +27,7 @@ from app.models import (
 )
 from app.prediction import compute_prediction
 from app.sustainability import compute_sustainability_index
-
-RESOURCE_NAMES = ("oxygen", "water", "energy")
+from app.utils import RESOURCE_NAMES, clamp
 
 # --- Tunable heuristic constants ---
 
@@ -58,10 +57,6 @@ ALWAYS_PROTECTED_MODULE_IDS = {"medical_bay"}
 REASON_EPSILON = 1.0
 
 _RISK_SEVERITY_VALUE = {"safe": 0.0, "watch": 0.4, "warning": 0.7, "critical": 1.0}
-
-
-def _clamp(value: float, low: float, high: float) -> float:
-    return max(low, min(high, value))
 
 
 def _occupancy_stats(state: HabitatState) -> dict[str, tuple[int, float]]:
@@ -102,7 +97,7 @@ def _resource_scarcity(
     for name in RESOURCE_NAMES:
         r = state.resources[name]
         usable_range = r.max_capacity - r.critical_threshold
-        stability_frac = 1.0 - _clamp(
+        stability_frac = 1.0 - clamp(
             (r.current_level - r.critical_threshold) / usable_range if usable_range > 0 else 0.0, 0.0, 1.0
         )
         risk_frac = _RISK_SEVERITY_VALUE.get(predictions[name].risk_level, stability_frac)
@@ -230,7 +225,7 @@ def generate_plan(state: HabitatState) -> OptimizationPlan:
             # Damped step toward the target to avoid oscillating/absurd jumps,
             # then re-clamp to the module's safety floor and 100% ceiling.
             new_value = current + DAMPING_FACTOR * (target - current)
-            new_value = round(_clamp(new_value, min_safe, 100.0), 1)
+            new_value = round(clamp(new_value, min_safe, 100.0), 1)
             setattr(after, resource, new_value)
 
             if reason and abs(new_value - current) > 0.05:
@@ -309,13 +304,18 @@ def apply_plan(state: HabitatState, plan: OptimizationPlan) -> OptimizationPlan:
     for change in plan.module_changes:
         module = state.modules.get(change.module_id)
         if module is None:
-            continue  # module no longer exists; skip silently, nothing to apply
+            # The plan references a module id that no longer exists in the
+            # live state (e.g. a stale/hand-edited plan from a previous
+            # session). There's nothing to apply for it, so it's skipped
+            # rather than raising - the rest of a valid plan should still
+            # go through.
+            continue
 
         before = module.current_allocation.model_copy()
         for resource in RESOURCE_NAMES:
             min_safe = getattr(module.minimum_safe_allocation, resource)
             proposed = getattr(change.after, resource)
-            safe_value = round(_clamp(proposed, min_safe, 100.0), 1)
+            safe_value = round(clamp(proposed, min_safe, 100.0), 1)
             setattr(module.current_allocation, resource, safe_value)
 
         actual_changes.append(
