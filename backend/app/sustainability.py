@@ -26,6 +26,7 @@ from app.simulation import (
     _facility_generation_bonus,
     _module_demand_totals,
 )
+from app.utils import RESOURCE_NAMES, clamp
 
 # --- Component weights (must sum to 1.0) ---
 WEIGHT_RESOURCE_STABILITY = 0.30
@@ -42,12 +43,6 @@ LONGEVITY_REFERENCE_HOURS = 72.0
 # own critical threshold is treated as fully resilient (100).
 RESILIENCE_REFERENCE_MULTIPLE = 2.0
 
-RESOURCE_NAMES = ("oxygen", "water", "energy")
-
-
-def _clamp(value: float, low: float = 0.0, high: float = 100.0) -> float:
-    return max(low, min(high, value))
-
 
 def _resource_stability(state: HabitatState) -> tuple[float, dict[str, float]]:
     """
@@ -62,7 +57,7 @@ def _resource_stability(state: HabitatState) -> tuple[float, dict[str, float]]:
         if usable_range <= 0:
             scores[name] = 0.0
             continue
-        scores[name] = _clamp((r.current_level - r.critical_threshold) / usable_range * 100.0)
+        scores[name] = clamp((r.current_level - r.critical_threshold) / usable_range * 100.0)
     overall = sum(scores.values()) / len(scores)
     return overall, scores
 
@@ -106,9 +101,12 @@ def _reserve_longevity(state: HabitatState) -> tuple[float, dict[str, float], di
             hours_remaining[name] = float("inf")
             continue
         buffer = r.current_level - r.critical_threshold
-        hours = buffer / abs(net_rate) if buffer > 0 else 0.0
+        # abs(net_rate) is guarded against zero as well as buffer<=0: a
+        # net_rate of exactly -0.0 is technically "< 0" but would still
+        # raise ZeroDivisionError below without this check.
+        hours = buffer / abs(net_rate) if buffer > 0 and net_rate != 0 else 0.0
         hours_remaining[name] = hours
-        scores[name] = _clamp(hours / LONGEVITY_REFERENCE_HOURS * 100.0)
+        scores[name] = clamp(hours / LONGEVITY_REFERENCE_HOURS * 100.0)
 
     overall = sum(scores.values()) / len(scores)
     return overall, scores, hours_remaining
@@ -154,7 +152,7 @@ def _allocation_efficiency(state: HabitatState) -> tuple[float, dict[str, float]
             # Over-allocating beyond what its criticality calls for: mild penalty.
             score = 100.0 - abs(deviation) * 1.0
 
-        score = _clamp(score)
+        score = clamp(score)
         per_module[module_id] = score
 
         weight = module.criticality_weight
@@ -181,7 +179,7 @@ def _emergency_resilience(state: HabitatState) -> tuple[float, dict[str, float]]
             resource_scores[name] = 0.0
             continue
         buffer_multiple = (r.current_level - r.critical_threshold) / r.critical_threshold
-        resource_scores[name] = _clamp(buffer_multiple / RESILIENCE_REFERENCE_MULTIPLE * 100.0)
+        resource_scores[name] = clamp(buffer_multiple / RESILIENCE_REFERENCE_MULTIPLE * 100.0)
     resource_buffer_score = sum(resource_scores.values()) / len(resource_scores)
 
     headroom_values = []
@@ -196,7 +194,7 @@ def _emergency_resilience(state: HabitatState) -> tuple[float, dict[str, float]]
             + module.current_allocation.water
             + module.current_allocation.energy
         ) / 3.0
-        headroom_values.append(_clamp(cur_avg - min_avg))
+        headroom_values.append(clamp(cur_avg - min_avg))
     headroom_score = sum(headroom_values) / len(headroom_values) if headroom_values else 0.0
 
     overall = (resource_buffer_score + headroom_score) / 2.0
@@ -279,7 +277,7 @@ def compute_sustainability_index(state: HabitatState) -> tuple[float, str, Susta
         + efficiency_overall * WEIGHT_ALLOCATION_EFFICIENCY
         + resilience_overall * WEIGHT_EMERGENCY_RESILIENCE
     )
-    overall_score = round(_clamp(overall_score), 1)
+    overall_score = round(clamp(overall_score), 1)
 
     component_scores = SustainabilityComponentScores(
         resource_stability=round(stability_overall, 1),
