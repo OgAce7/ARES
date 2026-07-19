@@ -10,6 +10,7 @@ No prediction, optimization, or randomness lives here.
 """
 
 from app.models import HabitatState
+from app.utils import clamp
 
 # --- Facility effect constants (per simulated hour, at 100% allocation) ---
 # These represent each facility's contribution beyond a module's own
@@ -31,10 +32,6 @@ OCCUPANCY_ENERGY_LOAD_PER_ASTRONAUT = 0.5
 # A resource is "warning" once it drops within 1.5x of its critical
 # threshold, and "critical" once it's at or below that threshold.
 WARNING_MULTIPLIER = 1.5
-
-
-def _clamp(value: float, low: float, high: float) -> float:
-    return max(low, min(high, value))
 
 
 def _occupancy_loads(state: HabitatState) -> dict[str, dict[str, float]]:
@@ -172,7 +169,7 @@ def run_tick(state: HabitatState, simulated_hours: float = 1.0) -> tuple[Habitat
         previous_level = resource.current_level
         previous_status = _resource_status(resource)
 
-        new_level = _clamp(
+        new_level = clamp(
             previous_level + net_per_hour * simulated_hours,
             0.0,
             resource.max_capacity,
