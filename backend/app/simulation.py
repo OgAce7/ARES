@@ -128,6 +128,23 @@ def _module_status(module) -> str:
     return "stable"
 
 
+def _scenario_overridden_module_ids(state: HabitatState) -> set[str]:
+    """
+    Module ids whose `status` field is currently held by an explicit
+    override from an active emergency scenario (see scenario.py's
+    `_apply_status`). The tick engine's own allocation-vs-floor status
+    logic must not silently overwrite these - only POST /scenario/clear
+    should restore them. Without this, water_recycler_failure's forced
+    "critical" status (needed because the recycler's minimum-safe water
+    allocation is 0%, so allocation-vs-floor logic alone never flags it)
+    would get quietly reverted back to "stable" on the very next tick.
+    """
+    overridden: set[str] = set()
+    for active in state.active_scenarios.values():
+        overridden.update(active.status_baseline.keys())
+    return overridden
+
+
 def run_tick(state: HabitatState, simulated_hours: float = 1.0) -> tuple[HabitatState, dict[str, float], list[str]]:
     """
     Advance `state` in place by `simulated_hours` and return
@@ -185,8 +202,14 @@ def run_tick(state: HabitatState, simulated_hours: float = 1.0) -> tuple[Habitat
 
     # Module statuses are derived from allocation vs. minimum-safe allocation.
     # The tick engine does not change allocations itself (that's future
-    # optimization logic's job) — it just re-evaluates status given current values.
+    # optimization logic's job) — it just re-evaluates status given current
+    # values. EXCEPT: a module currently held under an explicit scenario
+    # status override (see _scenario_overridden_module_ids) is left alone;
+    # POST /scenario/clear is the only thing that should change it back.
+    overridden_module_ids = _scenario_overridden_module_ids(state)
     for module_id, module in state.modules.items():
+        if module_id in overridden_module_ids:
+            continue
         previous_status = module.status
         new_status = _module_status(module)
         module.status = new_status
