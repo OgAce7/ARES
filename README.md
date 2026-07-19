@@ -19,6 +19,13 @@ Built for a hackathon, ARES demonstrates how autonomous decision-support systems
 
 ---
 
+## 🔗 Links
+
+- 🌐 Live Demo: [Visit here](https://ares-alpha.vercel.app/)
+- 📖 Setup Guide: [SETUP.md](SETUP.md)
+
+---
+
 ## 🖥️ Tech Stack
 
 ### Frontend
@@ -81,13 +88,6 @@ ARES
 ### Emergency Scenario Simulation
 
 ![Emergency](screenshots/emergency.png)
-
----
-
-## 🔗 Links
-
-- 🌐 Live Demo: [Visit here](https://ares-alpha.vercel.app/)
-- 📖 Setup Guide: [SETUP.md](SETUP.md)
 
 ---
 
