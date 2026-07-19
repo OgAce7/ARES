@@ -9,6 +9,8 @@ prediction, and optimization modules are expected to import
 here later).
 """
 
+import threading
+
 from app.models import (
     Astronaut,
     HabitatModule,
@@ -18,6 +20,16 @@ from app.models import (
     Resource,
     SimulationMeta,
 )
+
+# Guards every read/mutation of the shared `habitat_state` below. FastAPI
+# runs synchronous ("def", not "async def") route handlers - like every
+# handler in main.py - in a threadpool, so two requests (e.g. two
+# concurrent POST /tick calls, or a /tick racing a /state read) can
+# genuinely execute in parallel against this single mutable global. This
+# lock is acquired by every route in main.py that touches habitat_state,
+# serializing access so a tick/scenario/optimize mutation is never
+# interleaved with another one (or with a read) mid-way through.
+state_lock = threading.Lock()
 
 
 def _seed_resources() -> dict[str, Resource]:
