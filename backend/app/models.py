@@ -8,6 +8,12 @@ No simulation, prediction, or optimization logic lives here.
 from pydantic import BaseModel, Field
 
 
+class HealthResponse(BaseModel):
+    """Output of GET /health."""
+
+    status: str
+
+
 class Resource(BaseModel):
     """A single global resource pool (oxygen, water, or energy).
 
@@ -111,7 +117,12 @@ class HabitatState(BaseModel):
 class TickRequest(BaseModel):
     """Optional input to POST /tick."""
 
-    simulated_hours: float = Field(default=1.0, gt=0, description="Hours to advance the simulation by.")
+    simulated_hours: float = Field(
+        default=1.0,
+        gt=0,
+        le=100_000,
+        description="Hours to advance the simulation by (0, 100000].",
+    )
 
 
 class TickResponse(BaseModel):
