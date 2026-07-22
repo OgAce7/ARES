@@ -26,6 +26,33 @@ change.
 
 from app.models import ActiveScenario, HabitatState, ScenarioInfo, StateChange
 
+
+class ScenarioError(ValueError):
+    """Base class for all scenario-engine errors. Subclasses ValueError so
+    any existing `except ValueError` call site keeps working unchanged."""
+
+
+class UnknownScenarioError(ScenarioError):
+    """`scenario_id` is not one of the recognized scenarios in the catalog."""
+
+
+class ScenarioAlreadyActiveError(ScenarioError):
+    """The scenario is already active; it must be cleared before it can be re-triggered."""
+
+
+class ScenarioNotActiveError(ScenarioError):
+    """There is no active instance of this scenario to clear."""
+
+
+class ScenarioModuleConflictError(ScenarioError):
+    """Another currently-active scenario already holds an explicit status
+    override on the module this trigger would target."""
+
+
+class InvalidTargetModuleError(ScenarioError):
+    """The provided (or default) target_module does not exist."""
+
+
 # --- solar_flare constants ---
 SOLAR_FLARE_GENERATION_MULTIPLIER = 0.15  # baseline energy generation collapses to 15% of its prior value
 SOLAR_FLARE_CONSUMPTION_MULTIPLIER = 1.10  # +10% baseline draw: protective load-shedding/instability response
@@ -248,7 +275,10 @@ def _trigger_habitat_breach(
 ) -> tuple[dict[str, float], dict[str, str], list[StateChange], list[str], str]:
     resolved_target = target_module or DEFAULT_BREACH_MODULE
     if resolved_target not in state.modules:
-        raise ValueError(f"unknown target_module '{resolved_target}'")
+        valid = ", ".join(sorted(state.modules))
+        raise InvalidTargetModuleError(
+            f"Unknown target_module '{resolved_target}'. Valid modules: {valid}."
+        )
 
     numeric_baseline: dict[str, float] = {}
     status_baseline: dict[str, str] = {}
@@ -308,14 +338,25 @@ def trigger_scenario(
     """
     Trigger `scenario_id` against the live `state`, mutating it in place.
     Returns (target_module_used, state_changes, impact_summary).
-    Raises ValueError for an unknown scenario_id, an already-active
-    scenario, (for habitat_breach) an unknown target_module, or a target
-    module whose `status` is already overridden by another active scenario.
+
+    Raises:
+        UnknownScenarioError: `scenario_id` is not in the catalog.
+        ScenarioAlreadyActiveError: `scenario_id` is already active.
+        ScenarioModuleConflictError: the target module's status is already
+            overridden by a different active scenario.
+        InvalidTargetModuleError: (habitat_breach only) the target module
+            does not exist.
+    All of the above subclass ValueError, so existing `except ValueError`
+    call sites keep working unchanged even without catching the specific
+    subclasses.
     """
     if scenario_id not in SCENARIO_CATALOG:
-        raise ValueError(f"unknown scenario_id '{scenario_id}'")
+        valid = ", ".join(sorted(SCENARIO_CATALOG))
+        raise UnknownScenarioError(f"Unknown scenario_id '{scenario_id}'. Valid scenario ids: {valid}.")
     if scenario_id in state.active_scenarios:
-        raise ValueError(f"scenario '{scenario_id}' is already active; clear it before re-triggering")
+        raise ScenarioAlreadyActiveError(
+            f"Scenario '{scenario_id}' is already active; clear it before re-triggering."
+        )
 
     # Two active scenarios must never both hold an explicit status
     # override on the same module (e.g. habitat_breach targeting
@@ -328,10 +369,10 @@ def trigger_scenario(
     if status_target is not None:
         for other_id, other_active in state.active_scenarios.items():
             if status_target in other_active.status_baseline:
-                raise ValueError(
-                    f"module '{status_target}' already has an active emergency status "
+                raise ScenarioModuleConflictError(
+                    f"Module '{status_target}' already has an active emergency status "
                     f"override from scenario '{other_id}'; clear it before triggering "
-                    f"'{scenario_id}' against the same module"
+                    f"'{scenario_id}' against the same module."
                 )
 
     resolved_target = target_module
@@ -345,7 +386,7 @@ def trigger_scenario(
             state, target_module
         )
     else:  # pragma: no cover - guarded above
-        raise ValueError(f"unhandled scenario_id '{scenario_id}'")
+        raise UnknownScenarioError(f"Unhandled scenario_id '{scenario_id}'.")
 
     state.active_scenarios[scenario_id] = ActiveScenario(
         scenario_id=scenario_id,
@@ -363,11 +404,21 @@ def clear_scenario(state: HabitatState, scenario_id: str) -> list[StateChange]:
     Restore the exact fields modified by `scenario_id` back to their
     pre-trigger values, then deactivate it. Does not touch any other
     scenario or any unrelated habitat state.
-    Raises ValueError if the scenario is not currently active.
+
+    Raises:
+        UnknownScenarioError: `scenario_id` is not in the catalog at all.
+        ScenarioNotActiveError: `scenario_id` is a real scenario but has no
+            active instance to clear.
+    Both subclass ValueError, so existing `except ValueError` call sites
+    keep working unchanged even without catching the specific subclasses.
     """
+    if scenario_id not in SCENARIO_CATALOG:
+        valid = ", ".join(sorted(SCENARIO_CATALOG))
+        raise UnknownScenarioError(f"Unknown scenario_id '{scenario_id}'. Valid scenario ids: {valid}.")
+
     active = state.active_scenarios.get(scenario_id)
     if active is None:
-        raise ValueError(f"scenario '{scenario_id}' is not currently active")
+        raise ScenarioNotActiveError(f"Scenario '{scenario_id}' is not currently active; nothing to clear.")
 
     changes: list[StateChange] = []
 
