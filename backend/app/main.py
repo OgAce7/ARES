@@ -23,6 +23,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.models import (
     ApplyOptimizationRequest,
     HabitatState,
+    HealthResponse,
     MoveAstronautRequest,
     OptimizationPlan,
     PredictionResponse,
@@ -37,7 +38,14 @@ from app.models import (
 )
 from app.optimization import apply_plan, generate_plan
 from app.prediction import compute_prediction
-from app.scenario import clear_scenario, list_scenarios, trigger_scenario
+from app.scenario import (
+    ScenarioAlreadyActiveError,
+    ScenarioModuleConflictError,
+    ScenarioNotActiveError,
+    clear_scenario,
+    list_scenarios,
+    trigger_scenario,
+)
 from app.simulation import run_tick
 from app.state import habitat_state, reset_state, state_lock
 from app.sustainability import compute_sustainability_index
@@ -70,9 +78,9 @@ app.add_middleware(
     allow_origin_regex=r"https://.*\.vercel\.app"
 )
 
-@app.get("/health")
-def health() -> dict:
-    return {"status": "ok"}
+@app.get("/health", response_model=HealthResponse)
+def health() -> HealthResponse:
+    return HealthResponse(status="ok")
 
 
 @app.get("/state", response_model=HabitatState)
@@ -87,7 +95,15 @@ def reset() -> HabitatState:
         return reset_state().model_copy(deep=True)
 
 
-@app.post("/astronauts/{astronaut_id}/move", response_model=HabitatState)
+@app.post(
+    "/astronauts/{astronaut_id}/move",
+    response_model=HabitatState,
+    responses={
+        404: {"description": "No astronaut exists with the given id."},
+        400: {"description": "target_module does not name an existing module."},
+        422: {"description": "target_module is missing or empty."},
+    },
+)
 def move_astronaut(astronaut_id: str, request: MoveAstronautRequest) -> HabitatState:
     """
     Relocate a single astronaut to a different habitat module.
@@ -100,20 +116,24 @@ def move_astronaut(astronaut_id: str, request: MoveAstronautRequest) -> HabitatS
     with state_lock:
         astronaut = next((a for a in habitat_state.astronauts if a.id == astronaut_id), None)
         if astronaut is None:
-            raise HTTPException(status_code=404, detail=f"Astronaut '{astronaut_id}' not found")
+            raise HTTPException(status_code=404, detail=f"Astronaut '{astronaut_id}' not found.")
 
         if request.target_module not in habitat_state.modules:
             valid = ", ".join(sorted(habitat_state.modules))
             raise HTTPException(
                 status_code=400,
-                detail=f"Unknown target module '{request.target_module}'. Valid modules: {valid}",
+                detail=f"Unknown target_module '{request.target_module}'. Valid modules: {valid}.",
             )
 
         astronaut.current_location = request.target_module
         return habitat_state.model_copy(deep=True)
 
 
-@app.post("/tick", response_model=TickResponse)
+@app.post(
+    "/tick",
+    response_model=TickResponse,
+    responses={422: {"description": "simulated_hours must be > 0 and <= 100000."}},
+)
 def tick(request: TickRequest | None = None) -> TickResponse:
     simulated_hours = request.simulated_hours if request else 1.0
     with state_lock:
@@ -170,7 +190,20 @@ def scenarios() -> list[ScenarioInfo]:
     return list_scenarios()
 
 
-@app.post("/scenario/trigger", response_model=ScenarioTriggerResponse)
+@app.post(
+    "/scenario/trigger",
+    response_model=ScenarioTriggerResponse,
+    responses={
+        400: {"description": "Unknown scenario_id, or (habitat_breach) an unknown target_module."},
+        409: {
+            "description": (
+                "The scenario is already active, or its target module's status is already "
+                "overridden by a different active scenario."
+            )
+        },
+        422: {"description": "scenario_id or target_module is missing or empty."},
+    },
+)
 def scenario_trigger(request: ScenarioTriggerRequest) -> ScenarioTriggerResponse:
     """
     Trigger one of the three controlled emergency scenarios. Mutates
@@ -182,6 +215,8 @@ def scenario_trigger(request: ScenarioTriggerRequest) -> ScenarioTriggerResponse
             resolved_target, state_changes, impact_summary = trigger_scenario(
                 habitat_state, request.scenario_id, request.target_module
             )
+        except (ScenarioAlreadyActiveError, ScenarioModuleConflictError) as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -194,7 +229,15 @@ def scenario_trigger(request: ScenarioTriggerRequest) -> ScenarioTriggerResponse
         )
 
 
-@app.post("/scenario/clear", response_model=ScenarioClearResponse)
+@app.post(
+    "/scenario/clear",
+    response_model=ScenarioClearResponse,
+    responses={
+        400: {"description": "Unknown scenario_id."},
+        409: {"description": "The scenario is recognized but is not currently active."},
+        422: {"description": "scenario_id is missing or empty."},
+    },
+)
 def scenario_clear(request: ScenarioClearRequest) -> ScenarioClearResponse:
     """
     Restore the state fields modified by a previously-triggered scenario
@@ -204,6 +247,8 @@ def scenario_clear(request: ScenarioClearRequest) -> ScenarioClearResponse:
     with state_lock:
         try:
             state_changes = clear_scenario(habitat_state, request.scenario_id)
+        except ScenarioNotActiveError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
