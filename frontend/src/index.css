@@ -35,8 +35,16 @@
 
 body {
   margin: 0;
-  background: var(--ares-bg-deep);
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(255, 184, 107, 0.05), transparent 70%),
+    var(--ares-bg-deep);
   overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background: rgba(255, 184, 107, 0.3);
+  color: var(--ares-text-h);
 }
 
 h1, h2, h3, h4 {
