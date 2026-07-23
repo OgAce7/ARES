@@ -1,0 +1,230 @@
+/* ============================================================
+   ARES — Cozy Polish Layer
+   ------------------------------------------------------------
+   Purely additive visual refinements layered on top of every
+   existing component stylesheet. No layout changes, no new
+   DOM/JSX — this file only makes the existing structure feel
+   warmer, springier, and more consistent:
+     - a warm "cozy" accent alongside the existing cool palette
+     - consistent button press/hover/focus feedback everywhere
+     - gentle hover-lift for every card-like surface
+     - lively icon micro-interactions
+     - clearer, friendlier loading / error / success states
+     - a soft custom scrollbar
+     - small responsive spacing tweaks
+     - full respect for prefers-reduced-motion
+   Loaded last (see main.jsx) so it can override existing rules
+   at equal specificity without needing !important everywhere.
+   ============================================================ */
+
+:root {
+  /* Warm "cozy" accents — used for glows, focus rings, and the
+     loading/success/error language, layered next to the existing
+     cool --ares-accent/--ares-accent-2 tokens rather than replacing
+     them, so the space-station palette keeps its identity. */
+  --cozy-amber: #ffb86b;
+  --cozy-amber-soft: rgba(255, 184, 107, 0.18);
+  --cozy-moss: #8bd4a8;
+  --cozy-ease: cubic-bezier(0.34, 1.56, 0.64, 1); /* gentle overshoot / bounce */
+  --cozy-ease-soft: cubic-bezier(0.22, 1, 0.36, 1); /* smooth deceleration */
+  --cozy-shadow-hover: 0 12px 30px rgba(0, 0, 0, 0.38), 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* ── Typography rhythm ──────────────────────────────────────────── */
+h1, h2, h3, h4 {
+  letter-spacing: 0.01em;
+}
+
+p, li {
+  letter-spacing: 0.005em;
+}
+
+/* ── Buttons: consistent feel everywhere ────────────────────────── */
+button,
+[class*="-btn"],
+[class*="-button"] {
+  transition-timing-function: var(--cozy-ease-soft);
+}
+
+button:not(:disabled),
+[class*="-btn"]:not(:disabled),
+[class*="-button"]:not(:disabled) {
+  cursor: pointer;
+}
+
+button:not(:disabled):active,
+[class*="-btn"]:not(:disabled):active,
+[class*="-button"]:not(:disabled):active {
+  transform: scale(0.96);
+}
+
+/* Warm, friendly focus ring instead of relying on browser default */
+button:focus-visible,
+[class*="-btn"]:focus-visible,
+[class*="-button"]:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--cozy-amber);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* A soft warm glow on the app's primary actions, on top of whichever
+   hover effect each button already has. */
+.ares-tick-button:hover:not(:disabled),
+.ares-council-primary-btn:hover:not(:disabled),
+.ares-astro-card-move-btn:hover:not(:disabled) {
+  box-shadow: 0 0 0 1px var(--cozy-amber-soft), 0 6px 20px rgba(255, 184, 107, 0.22);
+}
+
+/* ── Cards: gentle hover-lift everywhere a "-card" class appears ──── */
+[class*="-card"] {
+  transition: transform 0.28s var(--cozy-ease-soft), box-shadow 0.28s var(--cozy-ease-soft),
+    border-color 0.28s ease;
+}
+
+[class*="-card"]:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--cozy-shadow-hover);
+}
+
+/* Cards that are actively disabled/pending shouldn't lift, so the
+   button-press feedback stays the primary signal instead. */
+[class*="-card"]:has(button:disabled):hover {
+  transform: translateY(-1px);
+}
+
+/* ── Icons: a small lively wobble on interactive hover ────────────── */
+button svg,
+[class*="-btn"] svg,
+[class*="-button"] svg {
+  transition: transform 0.25s var(--cozy-ease);
+}
+
+button:hover:not(:disabled) svg,
+[class*="-btn"]:hover:not(:disabled) svg,
+[class*="-button"]:hover:not(:disabled) svg {
+  transform: scale(1.12) rotate(-4deg);
+}
+
+/* ── Loading states: warmer, calmer spin ──────────────────────────── */
+.ares-loading-spinner,
+.ares-council-spin,
+.ares-eventsim-spin,
+.ares-astro-card-spin {
+  color: var(--cozy-amber);
+  animation-timing-function: linear;
+}
+
+/* ── Success states: soft pop-in instead of an abrupt appearance ──── */
+.ares-council-success-banner,
+.ares-eventsim-toast--success {
+  animation: cozy-pop-in 0.35s var(--cozy-ease) both;
+}
+
+/* ── Error states: a single gentle shake draws the eye once ──────── */
+.ares-council-error,
+.ares-eventsim-error,
+.ares-astro-card-error,
+.ares-backend-banner--error,
+.ares-eventsim-toast--error {
+  animation: cozy-shake 0.4s ease-in-out 1;
+}
+
+/* ── Badges/pills: a tiny bounce when they first appear ───────────── */
+.ares-sustainability-badge,
+.ares-mock-badge,
+.ares-eventsim-badge-count,
+.ares-council-protected-tag {
+  animation: cozy-badge-in 0.3s var(--cozy-ease) both;
+}
+
+@keyframes cozy-pop-in {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes cozy-shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-4px);
+  }
+  40% {
+    transform: translateX(4px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(3px);
+  }
+}
+
+@keyframes cozy-badge-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ── Soft custom scrollbar for scrollable panels ──────────────────── */
+.ares-council-body::-webkit-scrollbar,
+[class*="-panel-body"]::-webkit-scrollbar,
+[class*="-panel"]::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ares-council-body::-webkit-scrollbar-track,
+[class*="-panel-body"]::-webkit-scrollbar-track,
+[class*="-panel"]::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ares-council-body::-webkit-scrollbar-thumb,
+[class*="-panel-body"]::-webkit-scrollbar-thumb,
+[class*="-panel"]::-webkit-scrollbar-thumb {
+  background: rgba(255, 184, 107, 0.25);
+  border-radius: 8px;
+}
+
+.ares-council-body::-webkit-scrollbar-thumb:hover,
+[class*="-panel-body"]::-webkit-scrollbar-thumb:hover,
+[class*="-panel"]::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 184, 107, 0.45);
+}
+
+/* ── Responsive spacing tweaks (no layout/structure changes) ─────── */
+@media (max-width: 480px) {
+  .ares-council-body,
+  .ares-eventsim-panel-body {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .ares-council-actions {
+    padding: 12px 14px;
+  }
+}
+
+/* ── Accessibility: honor reduced-motion preference globally ─────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
