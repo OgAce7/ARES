@@ -17,10 +17,10 @@
   height: 58%;
   background: linear-gradient(
     180deg,
-    #05060c 0%,
-    #0a0e1e 35%,
-    #141a30 65%,
-    #23223a 100%
+    #1a1420 0%,
+    #241b30 30%,
+    #3a2f4a 62%,
+    #4a3a42 100%
   );
   overflow: hidden;
 }
@@ -31,7 +31,7 @@
   left: 0;
   width: 100%;
   height: 40%;
-  background: linear-gradient(180deg, transparent, rgba(111, 215, 255, 0.08));
+  background: linear-gradient(180deg, transparent, rgba(240, 179, 84, 0.1));
   pointer-events: none;
 }
 
@@ -43,8 +43,8 @@
   width: 100%;
   height: 64%;
   background:
-    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.05), transparent 60%),
-    linear-gradient(180deg, #3a3a46 0%, #232430 45%, #17171f 100%);
+    radial-gradient(ellipse at 50% 0%, rgba(255, 224, 168, 0.06), transparent 60%),
+    linear-gradient(180deg, #5a4a3a 0%, #3a2f26 45%, #241d18 100%);
   box-shadow: inset 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
