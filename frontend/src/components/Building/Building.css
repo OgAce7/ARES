@@ -125,7 +125,7 @@
   left: 8%;
   width: 84%;
   height: 30%;
-  background: linear-gradient(180deg, #3a4155, #23283a);
+  background: linear-gradient(180deg, #6b4f38, #3f2d1f);
   border-radius: 4px 4px 2px 2px;
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -138,11 +138,11 @@
   border-radius: 50% 50% 6% 6% / 100% 100% 8% 8%;
   background: linear-gradient(
     180deg,
-    rgba(180, 220, 255, 0.5),
-    rgba(120, 170, 235, 0.25) 60%,
-    rgba(60, 90, 140, 0.35)
+    rgba(205, 230, 190, 0.5),
+    rgba(145, 195, 125, 0.25) 60%,
+    rgba(70, 110, 65, 0.35)
   );
-  border: 1px solid rgba(220, 240, 255, 0.5);
+  border: 1px solid rgba(225, 240, 205, 0.5);
   box-shadow: inset 0 -6px 10px rgba(0, 0, 0, 0.25), 0 0 14px var(--ares-building-status-color);
 }
 
@@ -157,7 +157,7 @@
   left: 2%;
   width: 96%;
   height: 10%;
-  background: linear-gradient(180deg, #2c3244, #1a1e2c);
+  background: linear-gradient(180deg, #8a7458, #5a4632);
   border-radius: 3px;
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
@@ -167,7 +167,7 @@
   left: 10%;
   width: 80%;
   height: 18%;
-  background: linear-gradient(180deg, #3d445c, #262b3c);
+  background: linear-gradient(180deg, #7a5c3e, #4a3626);
   border-radius: 3px;
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -183,7 +183,7 @@
 .ares-shape-capitol-colonnade span {
   width: 8%;
   height: 100%;
-  background: linear-gradient(180deg, #c9cfe0, #7d859e);
+  background: linear-gradient(180deg, #f0e0bd, #c9a86e);
   border-radius: 1px;
   box-shadow: 0 0 6px var(--ares-building-status-color);
 }
@@ -196,11 +196,11 @@
   border-radius: 50% 50% 8% 8% / 100% 100% 10% 10%;
   background: linear-gradient(
     180deg,
-    rgba(210, 180, 255, 0.55),
-    rgba(150, 120, 220, 0.3) 60%,
-    rgba(90, 70, 150, 0.4)
+    rgba(220, 190, 235, 0.55),
+    rgba(190, 150, 210, 0.3) 60%,
+    rgba(130, 100, 150, 0.4)
   );
-  border: 1px solid rgba(230, 210, 255, 0.55);
+  border: 1px solid rgba(235, 215, 245, 0.55);
   box-shadow: inset 0 -6px 10px rgba(0, 0, 0, 0.25), 0 0 16px var(--ares-glow-council);
 }
 .ares-shape-capitol-beacon {
@@ -209,7 +209,7 @@
   left: 50%;
   width: 2px;
   height: 16px;
-  background: rgba(230, 210, 255, 0.8);
+  background: rgba(235, 215, 245, 0.85);
   transform: translateX(-50%);
 }
 .ares-shape-capitol-beacon::after {
@@ -240,7 +240,7 @@
   width: 30px;
   height: 26px;
   border-radius: 14px / 12px;
-  background: linear-gradient(160deg, #d7dde8, #9aa4bd);
+  background: linear-gradient(160deg, #f3e3c0, #c9a86e);
   border: 1px solid rgba(255, 255, 255, 0.25);
   box-shadow: 0 0 10px var(--ares-building-status-color);
 }
@@ -252,7 +252,7 @@
   left: 26px;
   width: 16px;
   height: 10px;
-  background: #7d879e;
+  background: #8a6f4e;
   border-radius: 3px;
 }
 
@@ -267,7 +267,7 @@
   left: 4px;
   width: 50px;
   height: 26px;
-  background: linear-gradient(160deg, #cfd6e6, #8f9ab3);
+  background: linear-gradient(160deg, #e8d4a8, #b89568);
   border-radius: 5px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 0 10px var(--ares-building-status-color);
@@ -278,7 +278,7 @@
   left: 50%;
   width: 2px;
   height: 16px;
-  background: #b7c0d6;
+  background: #8a6f4e;
   transform: translateX(-50%);
 }
 .ares-shape-lab-antenna::after {
@@ -305,7 +305,7 @@
   transform: translateX(-50%);
   width: 26px;
   height: 40px;
-  background: linear-gradient(160deg, #e3e7f0, #a3adc2);
+  background: linear-gradient(160deg, #f3e8d0, #c9b48a);
   border-radius: 6px 6px 3px 3px;
   border: 1px solid rgba(255, 255, 255, 0.25);
   box-shadow: 0 0 10px var(--ares-building-status-color);
@@ -317,7 +317,7 @@
   transform: translateX(-50%);
   width: 34px;
   height: 8px;
-  background: #c94c4c;
+  background: #c9603f;
   border-radius: 3px;
   opacity: 0.9;
 }
@@ -335,7 +335,7 @@
   width: 34px;
   height: 34px;
   border-radius: 10px;
-  background: linear-gradient(160deg, #bcdfe8, #4f8a99);
+  background: linear-gradient(160deg, #a8d4c8, #4a8a72);
   border: 1px solid rgba(255, 255, 255, 0.25);
   box-shadow: 0 0 10px var(--ares-building-status-color);
 }
@@ -345,7 +345,7 @@
   right: -6px;
   width: 14px;
   height: 6px;
-  background: #6d7a91;
+  background: #8a6f4e;
   border-radius: 2px;
 }
 
@@ -359,8 +359,8 @@
   bottom: 4px;
   width: 24px;
   height: 20px;
-  background: linear-gradient(160deg, #3f78c9, #16305a);
-  border: 1px solid rgba(140, 200, 255, 0.5);
+  background: linear-gradient(160deg, #7a9bc4, #2f4560);
+  border: 1px solid rgba(200, 220, 245, 0.5);
   border-radius: 2px;
   box-shadow: 0 0 8px var(--ares-building-status-color);
   transform: skewX(-8deg);
@@ -375,7 +375,7 @@
   transform: translateX(-50%);
   width: 3px;
   height: 14px;
-  background: #7d879e;
+  background: #8a6f4e;
 }
 
 /* ── Scenario visual reactions ─────────────────────────────────── */
