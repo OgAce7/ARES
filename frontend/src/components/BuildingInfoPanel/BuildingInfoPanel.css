@@ -7,7 +7,7 @@
   border-radius: 16px;
   background: var(--ares-panel);
   border: 1px solid var(--ares-panel-border);
-  backdrop-filter: blur(14px);
+  backdrop-filter: blur(6px);
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
   z-index: 30;
   pointer-events: auto;
@@ -27,7 +27,7 @@
   width: 34px;
   height: 34px;
   border-radius: 10px;
-  background: rgba(111, 215, 255, 0.12);
+  background: rgba(168, 201, 240, 0.12);
   color: var(--ares-accent);
   flex-shrink: 0;
 }
@@ -130,7 +130,7 @@
   font-weight: 600;
   letter-spacing: 0.02em;
   color: var(--ares-text-h);
-  background: linear-gradient(135deg, rgba(185, 140, 255, 0.22), rgba(111, 215, 255, 0.14));
+  background: linear-gradient(135deg, rgba(203, 163, 232, 0.22), rgba(168, 201, 240, 0.14));
   border: 1px solid var(--ares-accent-2);
   border-radius: 10px;
   cursor: pointer;
@@ -138,8 +138,8 @@
 }
 
 .ares-info-panel-council-cta:hover {
-  background: linear-gradient(135deg, rgba(185, 140, 255, 0.32), rgba(111, 215, 255, 0.2));
-  box-shadow: 0 0 16px rgba(185, 140, 255, 0.35);
+  background: linear-gradient(135deg, rgba(203, 163, 232, 0.32), rgba(168, 201, 240, 0.2));
+  box-shadow: 0 0 16px rgba(203, 163, 232, 0.35);
 }
 
 .ares-info-panel-council-cta:active {

@@ -13,7 +13,7 @@
   border-radius: 12px;
   background: var(--ares-panel);
   border: 1px solid var(--ares-panel-border);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(6px);
   min-width: 128px;
   transition: border-color 0.2s ease, transform 0.2s ease;
   cursor: default;
@@ -31,13 +31,13 @@
   width: 24px;
   height: 24px;
   border-radius: 8px;
-  background: rgba(111, 215, 255, 0.12);
+  background: rgba(168, 201, 240, 0.12);
   color: var(--ares-accent);
   flex-shrink: 0;
 }
 
 .ares-resource-chip--down .ares-resource-chip-icon {
-  background: rgba(255, 204, 92, 0.14);
+  background: rgba(240, 179, 84, 0.14);
   color: var(--ares-status-warning);
 }
 
@@ -71,7 +71,7 @@
 }
 
 .ares-resource-chip--down .ares-resource-bar-fill {
-  background: linear-gradient(90deg, #ffcc5c, #ff9c5c);
+  background: linear-gradient(90deg, #f0b354, #ff9c5c);
 }
 
 .ares-resource-chip-value {
@@ -91,14 +91,14 @@
    the trend classes above so a resource can visibly enter warning/critical
    state even when the momentary net rate looks flat. */
 .ares-resource-chip--risk-warning {
-  border-color: rgba(255, 204, 92, 0.5);
+  border-color: rgba(240, 179, 84, 0.5);
 }
 .ares-resource-chip--risk-warning .ares-resource-chip-icon {
-  background: rgba(255, 204, 92, 0.16);
+  background: rgba(240, 179, 84, 0.16);
   color: var(--ares-status-warning);
 }
 .ares-resource-chip--risk-warning .ares-resource-bar-fill {
-  background: linear-gradient(90deg, #ffcc5c, #ff9c5c);
+  background: linear-gradient(90deg, #f0b354, #ff9c5c);
 }
 
 .ares-resource-chip--risk-critical {
@@ -106,19 +106,19 @@
   animation: ares-resource-risk-pulse 1.6s ease-in-out infinite;
 }
 .ares-resource-chip--risk-critical .ares-resource-chip-icon {
-  background: rgba(255, 97, 97, 0.18);
+  background: rgba(217, 112, 74, 0.18);
   color: var(--ares-status-critical);
 }
 .ares-resource-chip--risk-critical .ares-resource-chip-value {
   color: var(--ares-status-critical);
 }
 .ares-resource-chip--risk-critical .ares-resource-bar-fill {
-  background: linear-gradient(90deg, #ff6161, #ff8c61);
+  background: linear-gradient(90deg, #d9704a, #ff8c61);
 }
 
 @keyframes ares-resource-risk-pulse {
-  0%, 100% { box-shadow: 0 0 0 rgba(255, 97, 97, 0); }
-  50% { box-shadow: 0 0 12px rgba(255, 97, 97, 0.45); }
+  0%, 100% { box-shadow: 0 0 0 rgba(217, 112, 74, 0); }
+  50% { box-shadow: 0 0 12px rgba(217, 112, 74, 0.45); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -141,7 +141,7 @@
   border-radius: 10px;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
   z-index: 20;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(6px);
 }
 
 @media (max-width: 720px) {
