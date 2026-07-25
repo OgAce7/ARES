@@ -231,6 +231,11 @@ export default function CouncilPanel({ open, onClose, onApplied }) {
                 <div className="ares-council-loading">
                   <Loader2 size={22} className="ares-council-spin" />
                   <span>The Council is deliberating…</span>
+                  <div className="ares-council-skeleton" aria-hidden="true">
+                    <div className="ares-skeleton-row ares-skeleton-row--wide" />
+                    <div className="ares-skeleton-row ares-skeleton-row--wide" />
+                    <div className="ares-skeleton-row ares-skeleton-row--short" />
+                  </div>
                 </div>
               )}
 
