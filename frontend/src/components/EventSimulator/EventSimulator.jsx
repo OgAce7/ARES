@@ -32,6 +32,7 @@ export default function EventSimulator({ activeScenarios, isMock, disabled, onSc
   const [notification, setNotification] = useState(null);
 
   const activeIds = Object.keys(activeScenarios ?? {});
+  const isCatalogLoading = isOpen && !catalog && !catalogError;
 
   useEffect(() => {
     if (!isOpen || catalog || catalogError) return;
@@ -148,8 +149,17 @@ export default function EventSimulator({ activeScenarios, isMock, disabled, onSc
                       <Icon size={15} strokeWidth={2.2} />
                     </div>
                     <div className="ares-eventsim-card-body">
-                      <span className="ares-eventsim-card-name">{meta?.name ?? id.replace(/_/g, ' ')}</span>
-                      {meta?.description && <p>{meta.description}</p>}
+                      {isCatalogLoading ? (
+                        <>
+                          <div className="ares-skeleton-row ares-skeleton-row--sm ares-skeleton-row--short" />
+                          <div className="ares-skeleton-row ares-skeleton-row--sm ares-skeleton-row--wide" />
+                        </>
+                      ) : (
+                        <>
+                          <span className="ares-eventsim-card-name">{meta?.name ?? id.replace(/_/g, ' ')}</span>
+                          {meta?.description && <p>{meta.description}</p>}
+                        </>
+                      )}
                     </div>
                     <button
                       type="button"
