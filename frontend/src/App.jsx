@@ -1,5 +1,5 @@
 import './index.css'
-import App from './App.jsx'
+import LunarWorld from './components/LunarWorld/LunarWorld.jsx'
 import './cozy-polish.css'
 
 function App() {
