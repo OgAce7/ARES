@@ -30,6 +30,82 @@
   --cozy-shadow-hover: 0 12px 30px rgba(0, 0, 0, 0.38), 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
+/* ── Disabled states: consistent, unmistakable everywhere ─────────── */
+button:disabled,
+[class*="-btn"]:disabled,
+[class*="-button"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  filter: saturate(0.7);
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+button:disabled:hover,
+[class*="-btn"]:disabled:hover,
+[class*="-button"]:disabled:hover {
+  transform: none !important;
+}
+
+/* ── Loading skeletons: soft shimmer placeholder for in-flight content ── */
+.ares-skeleton-row {
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(255, 224, 168, 0.16) 50%,
+    rgba(255, 255, 255, 0.05) 75%
+  );
+  background-size: 200% 100%;
+  animation: cozy-shimmer 1.6s ease-in-out infinite;
+}
+
+.ares-skeleton-row--sm {
+  height: 8px;
+}
+
+.ares-skeleton-row--wide {
+  width: 100%;
+}
+
+.ares-skeleton-row--short {
+  width: 55%;
+}
+
+.ares-skeleton-row + .ares-skeleton-row {
+  margin-top: 8px;
+}
+
+@keyframes cozy-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ── Success bump: a quick satisfying scale-pop for a just-completed
+     discrete action (e.g. the tick counter incrementing). Applied via a
+     remounting `key` so the browser replays the animation every time. ── */
+.ares-success-bump {
+  animation: cozy-success-bump 0.4s var(--cozy-ease) both;
+}
+
+@keyframes cozy-success-bump {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.18);
+    color: var(--cozy-amber);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 /* ── Typography rhythm ──────────────────────────────────────────── */
 h1, h2, h3, h4 {
   letter-spacing: 0.01em;
