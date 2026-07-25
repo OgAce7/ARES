@@ -44,7 +44,7 @@
   border-radius: 999px;
   background: var(--ares-status-warning);
   color: #1a1206;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
 }
 
@@ -64,7 +64,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 10.5px;
+  font-size: 11.5px;
   text-transform: capitalize;
   color: var(--ares-status-warning);
   background: rgba(240, 179, 84, 0.1);
@@ -87,9 +87,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 5px;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
   border: none;
   background: rgba(255, 255, 255, 0.08);
   color: inherit;
@@ -132,8 +132,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 28px;
+  height: 28px;
   border-radius: 6px;
   border: none;
   background: transparent;
@@ -200,14 +200,14 @@
 }
 
 .ares-eventsim-card-body p {
-  font-size: 10.5px;
+  font-size: 11.5px;
   line-height: 1.4;
   color: var(--ares-text-dim);
 }
 
 .ares-eventsim-card-action {
   flex-shrink: 0;
-  font-size: 10.5px;
+  font-size: 11.5px;
   font-weight: 700;
   color: var(--ares-text-h);
   background: rgba(255, 255, 255, 0.06);
@@ -229,7 +229,7 @@
 
 .ares-eventsim-mock-note {
   margin-top: 8px;
-  font-size: 10.5px;
+  font-size: 11.5px;
   color: var(--ares-status-warning);
   text-align: center;
 }
@@ -304,9 +304,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 5px;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
   border: none;
   background: transparent;
   color: var(--ares-text-dim);

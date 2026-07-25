@@ -126,7 +126,7 @@ export default function LunarWorld() {
   };
 
   return (
-    <div className="ares-lunar-world">
+    <div className="ares-lunar-world" role="main" aria-label="ARES habitat map">
       {/* ── Sky layer ────────────────────────────────────────────── */}
       <div className="ares-sky">
         <Starfield count={140} />
@@ -213,7 +213,7 @@ export default function LunarWorld() {
               title="Advance the simulation by 1 hour (POST /tick)"
             >
               {isTicking ? 'Advancing…' : `Advance +1h`}
-              <span className="ares-tick-count ares-success-bump" key={tickCount}>t={tickCount}</span>
+              <span className="ares-tick-count ares-success-bump" key={tickCount} aria-live="polite">t={tickCount}</span>
             </button>
             <button
               type="button"
@@ -236,15 +236,15 @@ export default function LunarWorld() {
         </div>
 
         {status === LOAD_STATUS.ERROR && (
-          <div className="ares-backend-banner ares-backend-banner--error">
+          <div className="ares-backend-banner ares-backend-banner--error" role="alert">
             <span>Backend unavailable{errorMessage ? `: ${errorMessage}` : '.'}</span>
             <button type="button" onClick={retry}>Retry</button>
           </div>
         )}
 
         {status === LOAD_STATUS.LOADING && (
-          <div className="ares-backend-banner ares-backend-banner--loading">
-            <span className="ares-loading-spinner" />
+          <div className="ares-backend-banner ares-backend-banner--loading" role="status" aria-live="polite">
+            <span className="ares-loading-spinner" aria-hidden="true" />
             <span>Connecting to ARES backend…</span>
           </div>
         )}
