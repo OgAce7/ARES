@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   X,
@@ -119,6 +119,8 @@ export default function CouncilPanel({ open, onClose, onApplied }) {
   const [plan, setPlan] = useState(null);
   const [appliedPlan, setAppliedPlan] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
+  const closeButtonRef = useRef(null);
+  const previouslyFocusedRef = useRef(null);
 
   const resetAndClose = () => {
     setStage(STAGE.IDLE);
@@ -127,6 +129,30 @@ export default function CouncilPanel({ open, onClose, onApplied }) {
     setErrorMessage(null);
     onClose();
   };
+
+  // Modal keyboard behavior: move focus into the dialog when it opens,
+  // return it to whatever triggered the dialog when it closes, and let
+  // Escape close it (matching the click-outside-to-close behavior below).
+  useEffect(() => {
+    if (open) {
+      previouslyFocusedRef.current = document.activeElement;
+      closeButtonRef.current?.focus();
+    } else if (previouslyFocusedRef.current instanceof HTMLElement) {
+      previouslyFocusedRef.current.focus();
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && stage !== STAGE.APPLYING) {
+        resetAndClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, stage]);
 
   const requestRecommendation = async () => {
     setStage(STAGE.LOADING_PREVIEW);
@@ -191,6 +217,10 @@ export default function CouncilPanel({ open, onClose, onApplied }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.96 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="ares-council-title"
+            aria-describedby="ares-council-desc"
           >
             <div className="ares-council-chamber-glow" />
 
@@ -199,11 +229,12 @@ export default function CouncilPanel({ open, onClose, onApplied }) {
                 <Landmark size={20} strokeWidth={2} />
               </div>
               <div className="ares-council-header-text">
-                <h2>ARES Council</h2>
-                <p>Autonomous resource equilibrium — allocation directives</p>
+                <h2 id="ares-council-title">ARES Council</h2>
+                <p id="ares-council-desc">Autonomous resource equilibrium — allocation directives</p>
               </div>
               <button
                 type="button"
+                ref={closeButtonRef}
                 className="ares-council-close"
                 onClick={resetAndClose}
                 aria-label="Close Council Chamber"
@@ -213,7 +244,7 @@ export default function CouncilPanel({ open, onClose, onApplied }) {
               </button>
             </div>
 
-            <div className="ares-council-body">
+            <div className="ares-council-body" aria-live="polite">
               {stage === STAGE.IDLE && (
                 <div className="ares-council-idle">
                   <Sparkles size={26} strokeWidth={1.6} className="ares-council-idle-icon" />
@@ -240,7 +271,7 @@ export default function CouncilPanel({ open, onClose, onApplied }) {
               )}
 
               {stage === STAGE.ERROR && (
-                <div className="ares-council-error">
+                <div className="ares-council-error" role="alert">
                   <AlertTriangle size={20} strokeWidth={2} />
                   <span>{errorMessage || 'The Council could not complete this request.'}</span>
                   <button type="button" className="ares-council-secondary-btn" onClick={requestRecommendation}>
