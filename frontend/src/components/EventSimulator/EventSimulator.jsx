@@ -86,6 +86,15 @@ export default function EventSimulator({ activeScenarios, isMock, disabled, onSc
     }
   };
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
+
   return (
     <div className="ares-eventsim">
       <button
@@ -94,10 +103,16 @@ export default function EventSimulator({ activeScenarios, isMock, disabled, onSc
         onClick={() => setIsOpen((v) => !v)}
         disabled={disabled}
         title="Simulate an emergency event (POST /scenario/trigger)"
+        aria-expanded={isOpen}
+        aria-haspopup="true"
       >
         <AlertTriangle size={13} strokeWidth={2.2} />
         Simulate Event
-        {activeIds.length > 0 && <span className="ares-eventsim-badge-count">{activeIds.length}</span>}
+        {activeIds.length > 0 && (
+          <span className="ares-eventsim-badge-count" aria-label={`${activeIds.length} active scenarios`}>
+            {activeIds.length}
+          </span>
+        )}
       </button>
 
       {activeIds.length > 0 && !isOpen && (
@@ -110,7 +125,7 @@ export default function EventSimulator({ activeScenarios, isMock, disabled, onSc
                 type="button"
                 onClick={() => clear(id)}
                 disabled={disabled || pendingId === id}
-                aria-label={`Clear ${id}`}
+                aria-label={`Clear ${catalog?.[id]?.name ?? id.replace(/_/g, ' ')}`}
                 title="Clear scenario (POST /scenario/clear)"
               >
                 {pendingId === id ? <Loader2 size={11} className="ares-eventsim-spin" /> : <ShieldOff size={11} />}
@@ -128,15 +143,21 @@ export default function EventSimulator({ activeScenarios, isMock, disabled, onSc
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.97 }}
             transition={{ duration: 0.18, ease: 'easeOut' }}
+            role="region"
+            aria-label="Emergency Scenarios"
           >
             <div className="ares-eventsim-panel-head">
               <span>Emergency Scenarios</span>
-              <button type="button" onClick={() => setIsOpen(false)} aria-label="Close">
+              <button type="button" onClick={() => setIsOpen(false)} aria-label="Close emergency scenarios panel">
                 <X size={14} />
               </button>
             </div>
 
-            {catalogError && <div className="ares-eventsim-error">{catalogError}</div>}
+            {catalogError && (
+              <div className="ares-eventsim-error" role="alert">
+                {catalogError}
+              </div>
+            )}
 
             <div className="ares-eventsim-list">
               {SCENARIO_ORDER.map(({ id, icon: Icon }) => {
@@ -193,17 +214,19 @@ export default function EventSimulator({ activeScenarios, isMock, disabled, onSc
             animate={{ opacity: 1, y: 0, x: '-50%' }}
             exit={{ opacity: 0, y: -8, x: '-50%' }}
             transition={{ duration: 0.2 }}
+            role={notification.type === 'error' ? 'alert' : 'status'}
+            aria-live={notification.type === 'error' ? 'assertive' : 'polite'}
           >
             {notification.type === 'success' ? (
-              <CheckCircle2 size={14} strokeWidth={2.4} />
+              <CheckCircle2 size={14} strokeWidth={2.4} aria-hidden="true" />
             ) : (
-              <XCircle size={14} strokeWidth={2.4} />
+              <XCircle size={14} strokeWidth={2.4} aria-hidden="true" />
             )}
             <div>
               <strong>{notification.title}</strong>
               <span>{notification.detail}</span>
             </div>
-            <button type="button" onClick={() => setNotification(null)} aria-label="Dismiss">
+            <button type="button" onClick={() => setNotification(null)} aria-label="Dismiss notification">
               <X size={12} />
             </button>
           </motion.div>
