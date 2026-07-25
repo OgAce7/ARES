@@ -213,7 +213,7 @@ export default function LunarWorld() {
               title="Advance the simulation by 1 hour (POST /tick)"
             >
               {isTicking ? 'Advancing…' : `Advance +1h`}
-              <span className="ares-tick-count">t={tickCount}</span>
+              <span className="ares-tick-count ares-success-bump" key={tickCount}>t={tickCount}</span>
             </button>
             <button
               type="button"
