@@ -23,7 +23,7 @@ export default function Astronaut({ astronaut, x, y, driftDelay, isActive, isMov
       onMouseLeave={() => onHover(null)}
       onFocus={() => onHover(id)}
       onBlur={() => onHover(null)}
-      aria-label={`${name} — click for crew details`}
+      aria-label={`${name} — view crew details`}
     >
       <motion.div
         className="ares-astronaut-drift"

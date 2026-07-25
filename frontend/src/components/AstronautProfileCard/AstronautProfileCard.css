@@ -59,8 +59,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 34px;
+  height: 34px;
   border-radius: 8px;
   border: 1px solid var(--ares-panel-border);
   background: transparent;
@@ -170,7 +170,7 @@
   margin-top: 12px;
   padding-top: 10px;
   border-top: 1px solid var(--ares-panel-border);
-  font-size: 10.5px;
+  font-size: 11.5px;
   line-height: 1.5;
   color: var(--ares-text-dim);
   font-style: italic;

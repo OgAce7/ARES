@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X, Wind, Droplets, Activity, MapPin, Loader2 } from 'lucide-react';
 import { BUILDINGS } from '../../data/worldConfig';
@@ -14,6 +14,15 @@ import './AstronautProfileCard.css';
 export default function AstronautProfileCard({ astronaut, isMoving, moveError, onMove, onClose }) {
   const [targetId, setTargetId] = useState('');
 
+  useEffect(() => {
+    if (!astronaut) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [astronaut, onClose]);
+
   return (
     <AnimatePresence>
       {astronaut && (
@@ -23,6 +32,8 @@ export default function AstronautProfileCard({ astronaut, isMoving, moveError, o
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={{ opacity: 0, x: -24, scale: 0.97 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
+          role="region"
+          aria-label={`${astronaut.name} crew details`}
         >
           <CardContent
             astronaut={astronaut}
@@ -110,7 +121,11 @@ function CardContent({ astronaut, isMoving, moveError, targetId, onTargetChange,
             {isMoving ? <Loader2 size={13} className="ares-astro-card-spin" /> : 'Move'}
           </button>
         </div>
-        {moveError && <p className="ares-astro-card-error">{moveError}</p>}
+        {moveError && (
+          <p className="ares-astro-card-error" role="alert">
+            {moveError}
+          </p>
+        )}
       </div>
 
       <p className="ares-astro-card-note">Crew movement dynamically shifts local resource demand.</p>

@@ -77,8 +77,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   border-radius: 8px;
   border: 1px solid var(--ares-panel-border);
   background: transparent;
@@ -293,7 +293,7 @@
 
 .ares-council-protected-tag {
   margin-left: auto;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--ares-accent);

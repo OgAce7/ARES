@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { X, Users, Landmark } from 'lucide-react';
@@ -5,6 +6,15 @@ import { STATUS_META } from '../../data/worldConfig';
 import './BuildingInfoPanel.css';
 
 export default function BuildingInfoPanel({ building, moduleStatus, onClose, onOpenCouncil }) {
+  useEffect(() => {
+    if (!building) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [building, onClose]);
+
   return (
     <AnimatePresence>
       {building && (
@@ -14,6 +24,8 @@ export default function BuildingInfoPanel({ building, moduleStatus, onClose, onO
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={{ opacity: 0, x: 24, scale: 0.97 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
+          role="region"
+          aria-label={`${building.name} details`}
         >
           <PanelContent
             building={building}
