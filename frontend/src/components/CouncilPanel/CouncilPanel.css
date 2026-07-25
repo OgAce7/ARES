@@ -127,6 +127,12 @@
   color: var(--ares-text);
 }
 
+.ares-council-skeleton {
+  width: 100%;
+  max-width: 320px;
+  margin-top: 6px;
+}
+
 .ares-council-error {
   color: var(--ares-status-critical);
 }
